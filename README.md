@@ -162,6 +162,7 @@ Autoloaded functions available on-demand. No function declaration needed in file
 - Always use tracking in sourced files (`zfile_track_start`/`zfile_track_end`)
 - Check installation before configuring (`is_installed`)
 - Follow zsh coding style (see [ZSH.md](ZSH.md))
+- Use `zparseopts` for parsing command-line options (not `case`/`getopts`)
 - Use lazy loading for slow tools
 - Use `load_plugin` for plugins (handles compilation)
 - Keep plugin directories in `.gitignore`
@@ -170,6 +171,7 @@ Autoloaded functions available on-demand. No function declaration needed in file
 
 - Never skip tracking in sourced files
 - Never assume tools are installed
+- Don't use `case $1` or `getopts` for option parsing (use `zparseopts`)
 - Don't put heavy operations in `.zshenv`
 - Don't use subshells when not needed
 - Don't commit plugin directories (only wrappers)

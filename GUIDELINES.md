@@ -68,11 +68,19 @@ Plugin directories (`plugins/<name>/`) are git clones and must be in `.gitignore
 ## Adding New User Function
 
 1. Create `functions/{name}` (no extension)
-2. Write function body directly (no function declaration):
+2. Write function body directly (no function declaration)
+3. For option parsing, use `zparseopts` (not `case`/`getopts`):
    ```zsh
-   # functions/myinfo
-   local hostname=$(hostname)
-   print "Host: $hostname"
+   # functions/mycommand
+   local -A opts
+   zparseopts -D -A opts h -help v -verbose
+
+   if (( ${+opts[-h]} + ${+opts[--help]} )); then
+       print "Usage: mycommand [-h|--help] [-v|--verbose]"
+       return 0
+   fi
+
+   (( ${+opts[-v]} + ${+opts[--verbose]} )) && print "Verbose mode"
    ```
 
 ## Adding New Include File

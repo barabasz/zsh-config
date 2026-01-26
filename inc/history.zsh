@@ -6,8 +6,8 @@ zfile_track_start ${0:A}
 
 # Variables
 export HISTFILE=$ZDOTDIR/.zsh_history
-export HISTSIZE=1000
-export SAVEHIST=1000
+export HISTSIZE=10000
+export SAVEHIST=10000
 
 # Options
 setopt append_history           # Append to history file

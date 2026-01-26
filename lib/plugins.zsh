@@ -295,23 +295,36 @@ find_plugin_file() {
 
 # Load a plugin by name
 # Automatically compiles .zsh files if needed for faster loading
-# Usage: load_plugin <name>
+# If plugin not installed and repo provided, auto-installs when ZPLUGINS_AUTO_INSTALL=1
+# Usage: load_plugin <name> [repo]
+# Repo can be: user/repo (GitHub shorthand) or full URL
+# Examples:
+#   load_plugin f-sy-h
+#   load_plugin f-sy-h z-shell/F-Sy-H
+#   load_plugin f-sy-h https://github.com/z-shell/F-Sy-H
 # Returns: 0 on success, 1 on failure
 load_plugin() {
-    (( ARGC == 1 )) || {
-        printe "Usage: load_plugin <name>"
+    (( ARGC >= 1 && ARGC <= 2 )) || {
+        printe "Usage: load_plugin <name> [repo]"
         return 1
     }
     local name=$1
+    local repo=${2:-}
     local target=$ZPLUGDIR/$name
 
     # Already loaded?
     (( ${+ZPLUGINS_LOADED[$name]} )) && return 0
 
-    [[ -d $target ]] || {
-        printe "Plugin '$name' not installed"
-        return 1
-    }
+    # Not installed - try auto-install if repo provided and enabled
+    if [[ ! -d $target ]]; then
+        if [[ -n $repo && ${ZPLUGINS_AUTO_INSTALL:-0} == 1 ]]; then
+            install_plugin "$name" "$repo" || return 1
+        else
+            printe "Plugin '$name' not installed"
+            [[ -n $repo ]] && printi "Run: install_plugin $name $repo"
+            return 1
+        fi
+    fi
 
     find_plugin_file "$target" || {
         printe "Cannot find main file for plugin '$name'"
@@ -333,6 +346,22 @@ load_plugin() {
 # Status checks
 # =============================================================================
 
+# Register a standalone plugin (single file, no repo)
+# Call this in your standalone plugin files to register them
+# Usage: register_plugin <name>
+# Example: register_plugin sudo-esc
+# Returns: 0 on success, 1 on failure
+register_plugin() {
+    (( ARGC == 1 )) || {
+        printe "Usage: register_plugin <name>"
+        return 1
+    }
+    local name=$1
+    # Get caller file path from funcfiletrace
+    local caller=${funcfiletrace[1]%:*}
+    ZPLUGINS_LOADED[$name]=$caller
+}
+
 # Check if a plugin is loaded
 # Usage: is_plugin_loaded <name>
 # Returns: 0 if loaded, 1 otherwise
@@ -347,26 +376,44 @@ is_plugin_installed() {
     (( ARGC == 1 )) && [[ -d $ZPLUGDIR/$1 ]]
 }
 
-# List installed plugins
+# List all plugins (repo-based and standalone files)
 # Usage: list_plugins
-# Prints list of installed plugins with status
+# Prints list of plugins with type and status
 list_plugins() {
-    local name state
-    local -a dirs=($ZPLUGDIR/*(N/:t))
+    local name state type path
+    local -a repo_plugins file_plugins all_plugins
+    local -A plugin_types
 
-    (( ${#dirs} == 0 )) && {
-        printi "No plugins installed"
+    # Find repo-based plugins (directories)
+    repo_plugins=($ZPLUGDIR/*(N/:t))
+    for name in $repo_plugins; do
+        plugin_types[$name]="repo"
+    done
+
+    # Find standalone plugins from ZPLUGINS_LOADED that are not repo-based
+    for name path in ${(kv)ZPLUGINS_LOADED}; do
+        if [[ ! -d $ZPLUGDIR/$name ]]; then
+            plugin_types[$name]="file"
+        fi
+    done
+
+    # Combine and sort
+    all_plugins=(${(ko)plugin_types})
+
+    (( ${#all_plugins} == 0 )) && {
+        printi "No plugins found"
         return
     }
 
-    print "Installed plugins:"
-    for name in $dirs; do
+    print "Plugins:"
+    for name in $all_plugins; do
+        type=$plugin_types[$name]
         if is_plugin_loaded $name; then
             state="loaded"
         else
             state="not loaded"
         fi
-        print "  $name ($state)"
+        printf "  %-20s [%s] %s\n" "$name" "$type" "($state)"
     done
 }
 

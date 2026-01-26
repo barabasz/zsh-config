@@ -21,6 +21,9 @@ export ZSH_LOGIN_INFO=0  # set to 1 to print login info messages
 export ZSH_SYS_INFO=0    # set to 1 to print system info messages
 export ZSH_CONFIG_VERSION="20260126v1"
 
+# Plugin settings
+export ZPLUGINS_AUTO_INSTALL=1  # set to 1 to auto-install missing plugins
+
 # Zsh module loading
 zmodload zsh/complete
 zmodload zsh/datetime

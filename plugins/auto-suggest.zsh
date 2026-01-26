@@ -9,7 +9,7 @@ zfile_track_start ${0:A}
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
-load_plugin autosuggestions zsh-users/zsh-autosuggestions
+load_plugin auto-suggest zsh-users/zsh-autosuggestions
 
 # Configuration AFTER loading
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"

@@ -1,6 +1,6 @@
 # Zsh Idiomatic Coding Guidelines
 
-Guidelines for writing idiomatic zsh code. This file complements [README.md](README.md), which describes the configuration architecture.
+Part of [zsh-config](README.md) documentation. Guidelines for writing idiomatic zsh code (not bash).
 
 ---
 
@@ -424,6 +424,3 @@ fi
 zfile_track_end ${0:A}
 ```
 
----
-
-*See also: [CLAUDE.md](CLAUDE.md) for zsh configuration architecture*

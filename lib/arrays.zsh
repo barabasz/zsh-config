@@ -2,6 +2,8 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+# Array manipulation utilities
+
 # Check if array contains element (exact match)
 # Usage: array_contains arr_name "element"
 # Returns: 0 (true) or 1 (false)
@@ -64,13 +66,15 @@ array_last() {
     print -- "${${(P)1}[-1]}"
 }
 
-# Append element to array
-# Usage: array_push arr_name "element"
+# Append element(s) to array
+# Usage: array_push arr_name "element" [element2...]
 # Returns: 0 on success (modifies array)
 array_push() {
-    (( ARGC == 2 )) || return 1
-    # Ordinary assignment works by appending to name
-    eval "$1+=('$2')"
+    (( ARGC >= 2 )) || return 1
+    local name=$1
+    shift
+    # Safe eval with quoting (q) to handle spaces/special chars
+    eval "$name+=(${(q)argv})"
 }
 
 # Remove and return last element from array
@@ -105,15 +109,15 @@ array_shift() {
     return 0
 }
 
-# Add element to beginning of array
-# Usage: array_unshift arr_name "element"
+# Add element(s) to beginning of array
+# Usage: array_unshift arr_name "element" [element2...]
 # Returns: 0 on success (modifies array)
 array_unshift() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC >= 2 )) || return 1
     local name=$1
-    local val=$2
-    # Prepend to array
-    eval "$name=('$val' \"\${(@P)name}\")"
+    shift
+    # Prepend to array using safe quoting
+    eval "$name=(${(q)argv} \${(@P)name})"
 }
 
 # Reverse array
@@ -168,7 +172,7 @@ array_slice() {
     local source=$1
     local start=$2
     local len=$3
-    local target=${4:-$3}
+    local target=${4:-$3} # Default to overwriting source if no target provided
     
     # Handling optional length argument logic
     if (( ARGC == 3 )); then
@@ -192,20 +196,21 @@ array_filter() {
 
 # Map array through function
 # Usage: array_map arr_name function_name result_arr_name
-# Sets result_arr to transformed elements
+# Note: The mapped function MUST set the variable $REPLY instead of printing
 array_map() {
     (( ARGC == 3 )) || return 1
     local src=$1
     local func=$2
     local target=$3
-    local -a output=()
+    local -a result
     local item
 
-    # Loop is unavoidable here if calling external function/command
     for item in "${(@P)src}"; do
-        output+=("$($func "$item")")
+        # Call function, expect result in REPLY (avoids subshell)
+        $func "$item"
+        result+=("$REPLY")
     done
-    set -A $target "${output[@]}"
+    set -A $target "${result[@]}"
 }
 
 # Join array with separator
@@ -214,7 +219,6 @@ array_map() {
 array_join() {
     (( ARGC == 2 )) || return 1
     # (j) flag: join with separator
-    # Fixed syntax: use ${(P)var} to dereference array content first
     print -- "${(j[$2])${(P)1}}"
 }
 
@@ -223,8 +227,7 @@ array_join() {
 # Modifies array by removing all occurrences
 array_remove() {
     (( ARGC == 2 )) || return 1
-    # :# pattern removal operator (empty replacement removes element)
-    # (@) flag preserves array structure
+    # :# pattern removal operator
     set -A $1 "${(@)${(P)1}:#$2}"
 }
 
@@ -238,14 +241,11 @@ array_remove_at() {
     eval "$1[$idx]=()"
 }
 
-# Flatten nested arrays
-# Note: Zsh arrays are naturally 1D. This function assumes 
-# the goal is to split string elements containing spaces.
+# Flatten nested arrays (split string elements by space)
 # Usage: array_flatten arr_name result_arr_name
 array_flatten() {
     (( ARGC == 2 )) || return 1
     # ${=var} performs word splitting on expansion
-    # Fixed syntax: use ${(P)var} for reliable indirect expansion
     set -A $2 ${=${(P)1}}
 }
 
@@ -253,8 +253,9 @@ array_flatten() {
 # Usage: array_concat arr1 arr2 [arr3...] result_arr_name
 array_concat() {
     (( ARGC >= 3 )) || return 1
-    local -a arrays=("${@:1:ARGC-1}")
-    local target="${@: -1}"
+    # Zsh slicing [1,-2] to get all but last arg
+    local -a arrays=( $argv[1,-2] )
+    local target="${argv[-1]}"
     local -a result=()
     local arr
 

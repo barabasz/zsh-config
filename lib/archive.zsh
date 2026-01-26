@@ -39,7 +39,7 @@ extract() {
     esac
 }
 
-# Compress a file or directory into a .tar.gz
+# Compress a file or directory into a .tar.gz (uses pigz if available)
 # Usage: compress target_name source_file_or_dir
 # Returns: 0 on success
 compress() {
@@ -51,8 +51,14 @@ compress() {
     [[ "$target" != *.tar.gz ]] && target="${target}.tar.gz"
 
     if [[ -e "$source" ]]; then
-        tar -czf "$target" "$source"
-        prints "Compressed '$source' to '$target'"
+        # Optimization: Use pigz for parallel compression if available
+        local prog="gzip"
+        (( ${+commands[pigz]} )) && prog="pigz"
+
+        # Use -C to change directory to parent to avoid absolute paths in archive
+        tar -I "$prog" -cf "$target" -C "${source:h}" "${source:t}"
+        
+        prints "Compressed '${source:t}' to '$target' using $prog"
     else
         printe "Source '$source' does not exist"
         return 1
@@ -71,14 +77,13 @@ zip_folder() {
     [[ "$target" != *.zip ]] && target="${target}.zip"
 
     if [[ -d "$source" ]]; then
-        # -r: recursive
-        # -9: max compression
-        # -q: quiet
-        # -x: exclude pattern
-        zip -r -9 -q "$target" "$source" -x "*.DS_Store" "*__MACOSX*" "*.git*"
+        # -r: recursive, -9: max compression, -q: quiet
+        # -x: exclude common system files/git
+        zip -r -9 -q "$target" "$source" -x "*.DS_Store" "*.git/*" "*.svn/*"
+        
         prints "Zipped '$source' to '$target'"
     else
-        printe "Source '$source' is not a directory"
+        printe "Directory '$source' does not exist"
         return 1
     fi
 }

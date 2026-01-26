@@ -47,6 +47,7 @@ current_year() {
 current_month() {
     local val
     strftime -s val "%m" $EPOCHSECONDS
+    # $(( val )) effectively strips leading zeros
     print -- $(( val ))
 }
 
@@ -139,8 +140,9 @@ sub_days() {
 days_between() {
     (( ARGC == 2 )) || return 1
     local diff=$(( $2 - $1 ))
-    # Use float division for accuracy then truncate to int
-    print -- $(( ( ${diff#-} ) / 86400 ))
+    # Mathematical absolute value
+    (( diff = diff < 0 ? -diff : diff ))
+    print -- $(( diff / 86400 ))
 }
 
 # Get difference between two timestamps in hours
@@ -149,7 +151,8 @@ days_between() {
 hours_between() {
     (( ARGC == 2 )) || return 1
     local diff=$(( $2 - $1 ))
-    print -- $(( ( ${diff#-} ) / 3600 ))
+    (( diff = diff < 0 ? -diff : diff ))
+    print -- $(( diff / 3600 ))
 }
 
 # Get difference between two timestamps in minutes
@@ -158,7 +161,8 @@ hours_between() {
 minutes_between() {
     (( ARGC == 2 )) || return 1
     local diff=$(( $2 - $1 ))
-    print -- $(( ( ${diff#-} ) / 60 ))
+    (( diff = diff < 0 ? -diff : diff ))
+    print -- $(( diff / 60 ))
 }
 
 # Get difference between two timestamps in seconds
@@ -167,7 +171,8 @@ minutes_between() {
 seconds_between() {
     (( ARGC == 2 )) || return 1
     local diff=$(( $2 - $1 ))
-    print -- ${diff#-}
+    (( diff = diff < 0 ? -diff : diff ))
+    print -- $diff
 }
 
 # Check if year is leap year
@@ -188,10 +193,10 @@ days_in_month() {
     local month=$1
     local year=$2
 
-    # Fast lookup without case statement overhead
-    if [[ $month == 2 ]]; then
+    if (( month == 2 )); then
         is_leap_year $year && print 29 || print 28
-    elif [[ " 4 6 9 11 " == *" $month "* ]]; then
+    # Optimization: Use Zsh pattern matching instead of slow string manipulation
+    elif [[ $month == (4|6|9|11) ]]; then
         print 30
     else
         print 31
@@ -205,7 +210,6 @@ age_from_date() {
     (( ARGC == 1 )) || return 1
     local birth_date="$1"
     
-    # Mathematical method (YYYYMMDD) is more accurate than seconds division
     local now_ymd
     local birth_ymd
     
@@ -235,8 +239,14 @@ start_of_day() {
 # Usage: end_of_day [timestamp]
 # Returns: timestamp for end of day
 end_of_day() {
+    local ts=${1:-$EPOCHSECONDS}
+    local date_str
     local start
-    start=$(start_of_day ${1:-$EPOCHSECONDS})
+    
+    # Inlined start_of_day logic to avoid subshell $(...) overhead
+    strftime -s date_str "%Y-%m-%d" $ts
+    strftime -r -s start "%Y-%m-%d" "$date_str"
+    
     print -- $(( start + 86399 ))
 }
 
@@ -246,11 +256,15 @@ end_of_day() {
 start_of_week() {
     local ts=${1:-$EPOCHSECONDS}
     local dow
-    strftime -s dow "%u" $ts  # 1=Monday, 7=Sunday
-    
-    local days_back=$(( dow - 1 ))
+    local date_str
     local start_today
-    start_today=$(start_of_day $ts)
+    
+    strftime -s dow "%u" $ts  # 1=Monday, 7=Sunday
+    local days_back=$(( dow - 1 ))
+    
+    # Inlined start_of_day logic to avoid subshell $(...) overhead
+    strftime -s date_str "%Y-%m-%d" $ts
+    strftime -r -s start_today "%Y-%m-%d" "$date_str"
     
     print -- $(( start_today - (days_back * 86400) ))
 }
@@ -313,7 +327,10 @@ relative_time() {
     local ts=$1
     local now=$EPOCHSECONDS
     local diff=$(( now - ts ))
-    local abs_diff=${diff#-} # absolute value
+    # Calculate absolute difference
+    local abs_diff
+    (( abs_diff = diff < 0 ? -diff : diff ))
+    
     local count unit result
 
     if (( abs_diff < 60 )); then
@@ -360,7 +377,6 @@ get_quarter() {
     local month
     strftime -s month "%m" $ts
     # Integer math trick to calculate quarter: (month - 1) / 3 + 1
-    # Zsh handles "09" correctly in math context, so strict int conversion not needed before math
     print -- $(( (month - 1) / 3 + 1 ))
 }
 
@@ -388,8 +404,6 @@ get_day_of_year() {
 # Usage: format_time 0.0005    → "500 μs"
 #        format_time 0.125     → "125.0 ms"
 #        format_time 2.5       → "2.50 s"
-# Input: seconds as float (e.g., from curl timing or EPOCHREALTIME diff)
-# Returns: formatted string with appropriate unit (μs, ms, s)
 format_time() {
     (( ARGC == 1 )) || return 1
     local -F val=$1

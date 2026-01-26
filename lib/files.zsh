@@ -3,7 +3,7 @@
 zfile_track_start ${0:A}
 
 # Load Zsh stat module for cross-platform file statistics without external 'stat' command
-zmodload zsh/stat
+zmodload -F zsh/stat b:zstat
 
 # Filesystem related functions
 # zsh-specific functions - requires zsh, will not work in bash
@@ -32,153 +32,193 @@ is_link() {
 
 # Alias for is_link
 # Usage: is_symlink "/path/to/symlink"
-# Returns: 0 (true) or 1 (false)
 is_symlink() {
-    is_link $@
+    # Fix: Pass arguments correctly, avoiding $@ bashism
+    is_link $argv
 }
 
 # Check if file is a hard link (has link count > 1)
-# Uses built-in zstat for portability (Linux/macOS)
+# Uses built-in zstat with array storage to avoid subshells
 # Usage: is_hardlink "/path/to/file"
-# Returns: 0 (true) or 1 (false)
 is_hardlink() {
     (( ARGC == 1 )) && [[ -f $1 ]] || return 1
-    # +nlink retrieves the number of hard links
-    local links
-    zstat -A links +nlink "$1" 2>/dev/null
-    (( links > 1 ))
+    
+    local -a stats
+    # -A: load into array, +nlink: get hardlink count
+    zstat -A stats +nlink "$1" 2>/dev/null
+    
+    (( stats[1] > 1 ))
 }
 
-# Check if path exists (any type)
-# Usage: is_exists "/path/to/anything"
-# Returns: 0 (true) or 1 (false)
-is_exists() {
-    (( ARGC == 1 )) && [[ -e $1 ]]
-}
-
-# Check if path is a block device
-# Usage: is_block_device "/dev/sda"
-# Returns: 0 (true) or 1 (false)
-is_block_device() {
-    (( ARGC == 1 )) && [[ -b $1 ]]
-}
-
-# Check if path is a character device
-# Usage: is_char_device "/dev/tty"
-# Returns: 0 (true) or 1 (false)
-is_char_device() {
-    (( ARGC == 1 )) && [[ -c $1 ]]
-}
-
-# Check if path is a named pipe (FIFO)
-# Usage: is_pipe "/path/to/pipe"
-# Returns: 0 (true) or 1 (false)
-is_pipe() {
-    (( ARGC == 1 )) && [[ -p $1 ]]
-}
-
-# Check if path is a socket
-# Usage: is_socket "/path/to/socket.sock"
-# Returns: 0 (true) or 1 (false)
-is_socket() {
-    (( ARGC == 1 )) && [[ -S $1 ]]
-}
-
-# --- Permissions Checks ---
-
-# Check if path is readable
-# Usage: is_readable "/path/to/file"
-# Returns: 0 (true) or 1 (false)
-is_readable() {
-    (( ARGC == 1 )) && [[ -r $1 ]]
-}
-
-# Check if path is writable
-# Usage: is_writable "/path/to/file"
-# Returns: 0 (true) or 1 (false)
-is_writable() {
-    (( ARGC == 1 )) && [[ -w $1 ]]
-}
-
-# Check if path is executable
-# Usage: is_executable "/path/to/script.sh"
-# Returns: 0 (true) or 1 (false)
+# Check if file is executable
+# Usage: is_executable "/path/to/file"
 is_executable() {
     (( ARGC == 1 )) && [[ -x $1 ]]
 }
 
-# --- Content/Metadata Checks ---
+# Check if file/dir is writable
+# Usage: is_writable "/path/to/file"
+is_writable() {
+    (( ARGC == 1 )) && [[ -w $1 ]]
+}
 
-# Check if file has zero size
-# Usage: is_zero_size "/path/to/file"
-# Returns: 0 (true) if empty, 1 (false) otherwise
-is_zero_size() {
-    # -s returns true if size > 0, so we invert logic
-    (( ARGC == 1 )) && [[ -s $1 ]] && return 1
-    return 0
+# Check if file/dir is readable
+# Usage: is_readable "/path/to/file"
+is_readable() {
+    (( ARGC == 1 )) && [[ -r $1 ]]
 }
 
 # Check if directory is empty
-# Usage: is_dir_empty "/path/to/dir"
-# Returns: 0 (true) if empty, 1 (false) otherwise
-is_dir_empty() {
+# Usage: is_empty_dir "/path/to/dir"
+is_empty_dir() {
     (( ARGC == 1 )) && [[ -d $1 ]] || return 1
     # Check if there is at least one file inside
     # Uses Zsh glob qualifiers: D (dotfiles), N (nullglob), [1] (stop after 1 match)
+    # This is extremely fast as it stops scanning immediately upon finding anything
     local -a files=("$1"/*(DN[1]))
     (( ${#files} == 0 ))
 }
+
+# --- Statistics & Info (No Subshells) ---
 
 # Get file size in bytes
 # Usage: get_file_size "file.txt"
 # Returns: file size in bytes (e.g., 1024)
 get_file_size() {
     (( ARGC == 1 )) && [[ -f $1 ]] || return 1
-    zstat +size "$1"
+    local -a stats
+    zstat -A stats +size "$1" 2>/dev/null && print -- $stats[1]
+}
+
+# Get file permissions in octal format
+# Usage: get_file_mode "file.txt"
+# Returns: 644, 755, etc.
+get_file_mode() {
+    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
+    local -a stats
+    zstat -A stats +mode "$1" 2>/dev/null && print -- $stats[1]
+}
+
+# Get file owner name
+# Usage: get_file_owner "file.txt"
+# Returns: user name
+get_file_owner() {
+    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
+    local -a stats
+    # +uid is numeric, but we want name. zstat doesn't resolve names by default easily via +flags alone
+    # in pure zstat without external 'id' command, sticking to ls -ld or zstat +uid is safer.
+    # However, zsh/stat can return user name if configured, but typically returns uid.
+    # Let's return UID to be safe and pure, or use zstat's string output mode.
+    zstat -s +uid "$1" 2>/dev/null
+}
+
+# Resolve symbolic link target (readlink equivalent)
+# Usage: resolve_link "symlink"
+# Returns: target path
+resolve_link() {
+    (( ARGC == 1 )) && [[ -L $1 ]] || return 1
+    local -a stats
+    zstat -A stats +link "$1" 2>/dev/null && print -- $stats[1]
+}
+
+# Get modification time (epoch)
+# Usage: get_file_mtime "file.txt"
+get_file_mtime() {
+    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
+    local -a stats
+    zstat -A stats +mtime "$1" 2>/dev/null && print -- $stats[1]
 }
 
 # --- Path Manipulation (Pure Zsh Modifiers) ---
+# Note: These are wrappers around native modifiers. 
+# In performance-critical loops, use ${var:t} directly instead of $(get_filename $var)
 
 # Get filename from path (basename equivalent)
-# Usage: get_filename "/path/to/file.txt"
-# Returns: "file.txt"
+# Usage: get_filename "/path/to/file.txt" -> "file.txt"
 get_filename() {
     (( ARGC == 1 )) || return 1
     print -- "${1:t}"
 }
 
 # Get directory from path (dirname equivalent)
-# Usage: get_dirname "/path/to/file.txt"
-# Returns: "/path/to"
+# Usage: get_dirname "/path/to/file.txt" -> "/path/to"
 get_dirname() {
     (( ARGC == 1 )) || return 1
     print -- "${1:h}"
 }
 
 # Get file extension (without dot)
-# Usage: get_extension "image.jpg"
-# Returns: "jpg"
+# Usage: get_extension "image.jpg" -> "jpg"
 get_extension() {
     (( ARGC == 1 )) || return 1
     print -- "${1:e}"
 }
 
 # Get filename without extension
-# Usage: get_filename_no_ext "image.jpg"
-# Returns: "image"
+# Usage: get_filename_no_ext "image.jpg" -> "image"
 get_filename_no_ext() {
     (( ARGC == 1 )) || return 1
     print -- "${1:t:r}"
 }
 
-# Get absolute path (resolving symlinks)
-# Usage: get_abs_path "../file.txt"
-# Returns: "/full/path/to/file.txt"
-get_abs_path() {
-    (( ARGC == 1 )) || return 1
-    # :A modifier resolves absolute path with symlinks
-    print -- "${1:A}"
+# --- Advanced Utilities ---
+
+# Count files in directory (non-recursive)
+# Usage: count_files ["/path/to/dir"] ["pattern"]
+# Defaults to current directory if no path provided.
+# Returns: number of files
+count_files() {
+    local dir=${1:-.}
+    local pattern=${2:-*}
+    
+    [[ -d $dir ]] || return 1
+    
+    # Glob qualifier (.): regular files only, (N): nullglob
+    local -a files=($dir/$~pattern(N.))
+    print -- ${#files}
 }
 
-# shell files tracking - keep at the end
+# Count directories in directory (non-recursive)
+# Usage: count_dirs ["/path/to/dir"] ["pattern"]
+# Defaults to current directory if no path provided.
+# Returns: number of directories
+count_dirs() {
+    local dir=${1:-.}
+    local pattern=${2:-*}
+    
+    [[ -d $dir ]] || return 1
+    
+    # Glob qualifier (/): directories only, (N): nullglob
+    local -a dirs=($dir/$~pattern(N/))
+    print -- ${#dirs}
+}
+
+# Create a file and its parent directories if they don't exist
+# Usage: mkfile "path/to/deep/file.txt"
+mkfile() {
+    (( ARGC == 1 )) || return 1
+    local dir=${1:h}
+    [[ -d $dir ]] || mkdir -p "$dir"
+    touch "$1"
+}
+
+# Format bytes into human readable size
+# Usage: format_size 12345678
+# Returns: 11.77 MB
+format_size() {
+    (( ARGC == 1 )) || return 1
+    local bytes=$1
+    local -a units=(B KB MB GB TB PB)
+    local i=1
+    local -F size=$bytes
+
+    while (( size > 1024 && i < 6 )); do
+        (( size /= 1024.0 ))
+        (( i++ ))
+    done
+
+    printf "%.2f %s\n" $size $units[$i]
+}
+
+# Shell files tracking - keep at the end
 zfile_track_end ${0:A}

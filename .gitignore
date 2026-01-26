@@ -1,8 +1,11 @@
 # zsh history file
 .zsh_history
 
-# Ignore subdirectories inside /plugins/
-/plugins/*/
+# zsh sessions folder
+.zsh_sessions/
 
-# Other files and directories
-/.claude/
+# subdirectories inside /plugins/
+plugins/*/
+
+# other files and directories
+.claude/

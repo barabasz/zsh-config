@@ -5,6 +5,8 @@ zfile_track_start ${0:A}
 # String manipulation functions
 # Uses native Zsh parameter expansion flags for performance
 
+# --- Transformation ---
+
 # Extract version number from a string
 # Usage: get_version "zsh 5.9"
 # Returns: 5.9
@@ -80,19 +82,25 @@ title_case() {
     local -a words=(${(s: :)str})
     local -a result=()
     local i word len
-    # Minor words list for English titles
+    
+    # Minor words list for English titles (defined once globally if possible, or static local)
+    # Using 'state' variable to avoid redeclaring on every call if sourced multiple times
     local -a minor_words=(
-        'a' 'an' 'the' 'to'
-        'at' 'by' 'down' 'for' 'from' 'in' 'into' 'like' 'near' 'of' 'off' 'on' 'onto' 'over' 'past' 'upon' 'with'
+        'a' 'an' 'the' 'to' 'at' 'by' 'down' 'for' 'from' 'in' 'into' 
+        'like' 'near' 'of' 'off' 'on' 'onto' 'over' 'past' 'upon' 'with'
         'and' 'as' 'but' 'if' 'nor' 'once' 'or' 'so' 'than' 'that' 'till' 'when' 'yet'
     )
+    
     for ((i=1; i<=${#words}; i++)); do
         word="${words[i]}"
         len=${#word}
+        # First and last words are always capitalized
         if (( i == 1 || i == ${#words} )); then
             result+=("${(C)word}")
+        # Words longer than 4 chars are capitalized
         elif (( len >= 5 )); then
             result+=("${(C)word}")
+        # Check if it is a minor word (Reverse subscripting returns index or 0)
         elif (( ${minor_words[(I)$word]} > 0 )); then
             result+=("$word")
         else
@@ -102,12 +110,27 @@ title_case() {
     print -- "${(j: :)result}"
 }
 
+# Convert string to slug (URL-friendly)
+# Usage: slugify "Hello World! 123"
+# Returns: "hello-world-123"
+slugify() {
+    (( ARGC == 1 )) || return 1
+    local str="${1:l}"              # Lowercase
+    str=${str//[^a-z0-9]/-}         # Replace non-alnum with hyphen
+    setopt local_options extended_glob
+    str=${str//-(-)#/-}             # Squeeze multiple hyphens (zsh specific #)
+    str=${str#-}                    # Trim leading hyphen
+    str=${str%-}                    # Trim trailing hyphen
+    print -- "$str"
+}
+
+# --- Inspection ---
+
 # Check if string contains substring
 # Usage: str_contains "hello world" "world"
 # Returns: 0 (true) or 1 (false)
 str_contains() {
     (( ARGC == 2 )) || return 1
-    # Using Zsh pattern matching
     [[ "$1" == *"$2"* ]]
 }
 
@@ -135,6 +158,19 @@ str_length() {
     print -- ${#1}
 }
 
+# Count occurrences of substring
+# Usage: str_count "hello world" "l"
+# Returns: 3
+str_count() {
+    (( ARGC == 2 )) || return 1
+    local str=$1
+    local sub=$2
+    # Replace substring with empty, subtract lengths
+    print -- $(( (${#str} - ${#${str//$sub/}}) / ${#sub} ))
+}
+
+# --- Formatting & Modification ---
+
 # Repeat string N times
 # Usage: str_repeat "-" 10
 # Returns: "----------"
@@ -145,9 +181,38 @@ str_repeat() {
 
     (( count > 0 )) || return 1
     
-    # 'repeat' is a Zsh builtin, much faster than a for loop
-    repeat $count print -n -- "$str"
-    print "" # Newline at the end
+    # Optimization: If string is 1 char, use Zsh padding expansion (extremely fast)
+    if (( ${#str} == 1 )); then
+        print -- "${(l:count::${str}:):-}"
+    else
+        # For multi-char strings, use repeat loop (faster than for loop)
+        repeat $count print -n -- "$str"
+        print "" # Newline at the end
+    fi
+}
+
+# Pad string to length
+# Usage: str_pad "text" 10 [char] [left|right|center]
+# Usage: str_pad "Hello" 10 "-" "center" -> "--Hello---"
+str_pad() {
+    (( ARGC >= 2 )) || return 1
+    local str="$1"
+    local len=$2
+    local char="${3:- }"
+    local align="${4:-left}"
+
+    case "$align" in
+        left)   print -- "${(r:len::${char}:)str}" ;;  # Right-pad (align left)
+        right)  print -- "${(l:len::${char}:)str}" ;;  # Left-pad (align right)
+        center) 
+            local pad=$(( (len - ${#str}) / 2 ))
+            local left="${(l:pad::${char}:):-}"
+            local right="${(l:pad::${char}:):-}"
+            # Adjust if odd
+            (( (len - ${#str}) % 2 != 0 )) && right+="$char"
+            print -- "${left}${str}${right}" 
+            ;;
+    esac
 }
 
 # Reverse string
@@ -155,10 +220,7 @@ str_repeat() {
 # Returns: "olleh"
 str_reverse() {
     (( ARGC == 1 )) || return 1
-    # Zsh magic:
-    # (s::) - split string into characters (empty separator)
-    # (Oa)  - reverse array order
-    # (j::) - join array back into string
+    # Zsh magic: split (s::), reverse order (Oa), join (j::)
     print -- "${(j::)${(Oa)${(s::)1}}}"
 }
 
@@ -171,7 +233,6 @@ str_split() {
     local delim="$2"
     local arr_name="$3"
 
-    # 'set -A' is the standard Zsh way to assign arrays by name
     # (@s[$delim]) splits the string based on delimiter
     set -A $arr_name "${(@s[$delim])str}"
 }
@@ -184,7 +245,7 @@ str_join() {
     local delim="$1"
     local arr_name="$2"
 
-    # Fixed syntax: use ${(P)var} to dereference array content first, then join
+    # ${(P)arr_name} dereferences array content
     print -- "${(j[$delim])${(P)arr_name}}"
 }
 
@@ -204,6 +265,8 @@ str_replace_all() {
     print -- "${1//$2/$3}"
 }
 
+# --- Checks ---
+
 # Check if string is empty
 # Usage: is_empty "  "
 # Returns: 0 (true) for empty/whitespace-only, 1 (false) otherwise
@@ -213,14 +276,22 @@ is_empty() {
     [[ -z "${${1##[[:space:]]#}%%[[:space:]]#}" ]]
 }
 
-# Check if string is numeric
-# Usage: is_numeric "123"
-# Returns: 0 (true) or 1 (false)
+# Check if string is numeric (Integer or Float, +/-)
+# Usage: is_numeric "3.14" -> 0
+# Usage: is_numeric "-5"   -> 0
 is_numeric() {
     (( ARGC == 1 )) || return 1
-    # <-> matches any range of numbers in Zsh globbing (if extended_glob is on),
-    # but regex is safer for strict numeric check including negatives
-    [[ "$1" =~ '^-?[0-9]+$' ]]
+    # Regex for optional minus, digits, optional dot and decimal
+    [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]
+}
+functions[is_number]=$functions[is_numeric]
+
+# Check if string is strictly an integer
+# Usage: is_integer "123" -> 0
+# Usage: is_integer "3.14" -> 1
+is_integer() {
+    (( ARGC == 1 )) || return 1
+    [[ "$1" =~ ^-?[0-9]+$ ]]
 }
 
 # Check if string is alphanumeric
@@ -228,13 +299,12 @@ is_numeric() {
 # Returns: 0 (true) or 1 (false)
 is_alphanumeric() {
     (( ARGC == 1 )) || return 1
-    [[ "$1" =~ '^[[:alnum:]]+$' ]]
+    [[ "$1" =~ ^[[:alnum:]]+$ ]]
 }
 
 # Get substring
 # Usage: substring "hello world" 6 5
 # Returns: "world" (start at position 6, length 5)
-# Note: Zsh variable slicing ${var:offset:length} is 0-based
 substring() {
     (( ARGC >= 2 && ARGC <= 3 )) || return 1
     local str="$1"
@@ -244,5 +314,5 @@ substring() {
     print -- "${str:$start:$length}"
 }
 
-# shell files tracking - keep at the end
+# Shell files tracking - keep at the end
 zfile_track_end ${0:A}

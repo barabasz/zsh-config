@@ -22,7 +22,7 @@ export ZSH_AUTOCOMPILE=${ZSH_AUTOCOMPILE:-1}  # set to 1 to enable auto-compilat
 export ZSH_LOAD_APPS=${ZSH_LOAD_APPS:-1}      # set to 1 to load app configurations from apps/
 export ZSH_LOAD_PLUGINS=${ZSH_LOAD_PLUGINS:-1}  # set to 1 to load plugins from plugins/
 export ZSH_PLUGINS_AUTOINSTALL=${ZSH_PLUGINS_AUTOINSTALL:-1}  # set to 1 to auto-install missing plugins
-export ZSH_CONFIG_VERSION="20260126v3"        # configuration version
+export ZSH_CONFIG_VERSION="20260128v1"        # configuration version
 
 # Zsh module loading
 zmodload zsh/complete

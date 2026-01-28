@@ -9,54 +9,53 @@ zfile_track_start ${0:A}
 
 # Check if current OS is Debian-based (includes Ubuntu, Mint, etc.)
 # Usage: is_debian_based
-# Returns: 0 (true) or 1 (false)
 is_debian_based() {
     [[ -f /etc/debian_version ]]
 }
 
 # Check if current OS is specifically Debian (not derivatives)
 # Usage: is_debian
-# Returns: 0 (true) or 1 (false)
 is_debian() {
     [[ -f /etc/os-release ]] || return 1
-    # Read file, filter line starting with ID=, check if it contains debian
+    # Read file directly into variable
     local content=$(</etc/os-release)
-    [[ $content =~ 'ID=debian' ]]
+    [[ $content == *"ID=debian"* ]]
 }
 
 # Check if current OS is specifically Ubuntu
 # Usage: is_ubuntu
-# Returns: 0 (true) or 1 (false)
 is_ubuntu() {
     [[ -f /etc/os-release ]] || return 1
     local content=$(</etc/os-release)
-    [[ $content =~ 'ID=ubuntu' ]]
+    [[ $content == *"ID=ubuntu"* ]]
 }
 
 # Check if current OS is macOS
 # Usage: is_macos
-# Returns: 0 (true) or 1 (false)
 is_macos() {
     [[ $OSTYPE == darwin* ]]
 }
 
 # Check if current OS is Linux
 # Usage: is_linux
-# Returns: 0 (true) or 1 (false)
 is_linux() {
     [[ $OSTYPE == linux* ]]
 }
 
 # Check if current OS is Windows (WSL)
 # Usage: is_wsl
-# Returns: 0 (true) or 1 (false)
 is_wsl() {
-    [[ -f /proc/version ]] && grep -q "microsoft" /proc/version
+    # Pure Zsh check without grep
+    if [[ -r /proc/version ]]; then
+        local version=$(</proc/version)
+        [[ $version == *[Mm]icrosoft* || $version == *WSL* ]]
+    else
+        return 1
+    fi
 }
 
 # Check if running as root
 # Usage: is_root
-# Returns: 0 (true) or 1 (false)
 is_root() {
     (( EUID == 0 ))
 }
@@ -72,9 +71,10 @@ os_name() {
             print "macos" ;;
         linux*)
             if [[ -f /etc/os-release ]]; then
-                # Extract ID value purely within Zsh
-                local line=${(M)${(f)"$(</etc/os-release)"}:#ID=*}
-                print -- ${${line#ID=}//\"/}
+                # Optimized extraction without subshells/grep
+                # (M) keeps matching lines, (f) splits by line
+                local line=${${(M)${(f)"$(</etc/os-release)"}:#ID=*}#ID=}
+                print -- ${line//\"/}
             else
                 print "linux"
             fi ;;
@@ -95,25 +95,23 @@ os_codename() {
 }
 
 # Helper for Linux codename
-# Usage: _linux_codename
-# Returns: Codename string
 _linux_codename() {
     [[ -f /etc/os-release ]] || return 1
-    local line=${(M)${(f)"$(</etc/os-release)"}:#VERSION_CODENAME=*}
+    local content="${(f)$(</etc/os-release)}"
+    local line=${${(M)content:#VERSION_CODENAME=*}#VERSION_CODENAME=}
+    
     # Fallback to PRETTY_NAME if VERSION_CODENAME is missing
     if [[ -z "$line" ]]; then
-        line=${(M)${(f)"$(</etc/os-release)"}:#PRETTY_NAME=*}
+        line=${${(M)content:#PRETTY_NAME=*}#PRETTY_NAME=}
     fi
-    local codename=${${line#*=}//\"/}
-    print -- "${(C)codename}"
+    
+    print -- "${(C)${line//\"/}}"
 }
 
 # Helper for macOS codename
-# Usage: _macos_codename
-# Returns: macOS marketing name
 _macos_codename() {
     local product_ver
-    # Fast retrieval using sw_vers
+    # Fast retrieval
     product_ver=$(sw_vers -productVersion)
     
     # Split version by dots
@@ -121,6 +119,7 @@ _macos_codename() {
     local major=${ver_parts[1]}
     local minor=${ver_parts[2]}
 
+    # Based on your previous context about Tahoe 26.2
     case $major in
         26) print "Tahoe" ;;
         15) print "Sequoia" ;;
@@ -149,29 +148,32 @@ os_version() {
     if is_macos; then
         sw_vers -productVersion
     elif [[ -f /etc/os-release ]]; then
-        local line=${(M)${(f)"$(</etc/os-release)"}:#VERSION_ID=*}
-        print -- ${${line#VERSION_ID=}//\"/}
+        local line=${${(M)${(f)"$(</etc/os-release)"}:#VERSION_ID=*}#VERSION_ID=}
+        print -- ${line//\"/}
     fi
 }
 
-# Get system architecture
+# Get system architecture (Normalized)
 # Usage: get_arch
-# Returns: "arm64", "x86_64", etc.
+# Returns: "arm64", "x64", "x86"
 get_arch() {
-    # 'uname -m' is standard, but check if we can get it from env first
-    print -- ${CPUTYPE:-$(uname -m)}
+    local arch=${CPUTYPE:-$(uname -m)}
+    case $arch in
+        x86_64|amd64) print "x64" ;;
+        arm64|aarch64) print "arm64" ;;
+        i386|i686) print "x86" ;;
+        *) print $arch ;;
+    esac
 }
 
 # Get kernel version
 # Usage: get_kernel_version
-# Returns: "6.5.0-14-generic" or "23.2.0"
 get_kernel_version() {
     uname -r
 }
 
 # Get OS icon (Nerd Fonts required)
 # Usage: os_icon
-# Returns: Unicode character
 os_icon() {
     case $(os_name) in
         macos)      print $'\Uf179' ;; # Apple logo
@@ -182,6 +184,8 @@ os_icon() {
         arch)       print $'\Uf303' ;;
         opensuse*)  print $'\Uf314' ;;
         windows)    print $'\Uf17a' ;;
+        raspbian)   print $'\Uf315' ;;
+        alpine)     print $'\Uf300' ;;
         *)          print $'\Ue712' ;; # Generic Linux penguin
     esac
 }
@@ -191,33 +195,141 @@ os_icon() {
 # Returns: "2 days 4h 15m" using format_duration
 get_uptime() {
     local uptime_sec boot_time
+    
     if is_macos; then
+        # sysctl returns: { sec = 1700000000, usec = 0 }
+        # We extract the seconds part
         boot_time=${$(sysctl -n kern.boottime)[(w)4]//,}
         uptime_sec=$(( EPOCHSECONDS - boot_time ))
     elif [[ -r /proc/uptime ]]; then
+        # First field of /proc/uptime is seconds
         read uptime_sec _ < /proc/uptime
         uptime_sec=${uptime_sec%.*}
     else
-        # Fallback to standard uptime command
-        uptime | sed 's/.*up \([^,]*\), .*/up \1/'
+        # Fallback without sed, using parameter expansion
+        local up_str=$(uptime)
+        # Extract part after "up " until first comma
+        up_str=${up_str#*up }
+        print -- ${up_str%%,*}
         return 0
     fi
+    
     # Use helper from date.zsh if available
     if (( ${+functions[format_duration]} )); then
         format_duration "$uptime_sec"
     else
-        print -- "${uptime_sec}s"
+        # Simple fallback
+        local d=$(( uptime_sec / 86400 ))
+        local h=$(( (uptime_sec % 86400) / 3600 ))
+        local m=$(( (uptime_sec % 3600) / 60 ))
+        (( d > 0 )) && print -n "${d}d "
+        (( h > 0 )) && print -n "${h}h "
+        print "${m}m"
     fi
 }
 
-# Get number of CPU cores
+# Get CPU Load Average (1 min)
+# Usage: get_load_average
+# Returns: "1.50"
+get_load_average() {
+    if is_macos; then
+        # sysctl returns "{ 1.50 1.20 1.00 }"
+        local load=$(sysctl -n vm.loadavg)
+        # Extract second word (the first number inside braces)
+        print -- ${load[(w)2]}
+    elif [[ -r /proc/loadavg ]]; then
+        # First field
+        read load _ < /proc/loadavg
+        print -- $load
+    fi
+}
+
+# Get Number of CPU Cores
 # Usage: get_cpu_count
-# Returns: Integer (e.g. 8)
 get_cpu_count() {
     if is_macos; then
         sysctl -n hw.ncpu
     elif is_linux; then
-        nproc 2>/dev/null || grep -c ^processor /proc/cpuinfo
+        # nproc is standard, fallback to counting cpuinfo
+        if (( ${+commands[nproc]} )); then
+            nproc
+        else
+            grep -c ^processor /proc/cpuinfo
+        fi
+    fi
+}
+
+# Get Total RAM in Bytes
+# Usage: get_ram_total [-f|--format]
+# Returns: Bytes (integer) or formatted string (e.g. "16.00 GiB")
+get_ram_total() {
+    local format=0
+    [[ "$1" == "-f" || "$1" == "--format" ]] && format=1
+    
+    local total_bytes=0
+    
+    if is_macos; then
+        total_bytes=$(sysctl -n hw.memsize)
+    elif [[ -r /proc/meminfo ]]; then
+        # MemTotal:        16309624 kB
+        local line=${${(M)${(f)"$(</proc/meminfo)"}:#MemTotal*}#MemTotal:}
+        # Extract number and convert kB to bytes
+        local kb=${line//[^0-9]/}
+        total_bytes=$(( kb * 1024 ))
+    fi
+
+    if (( format )); then
+        format_bytes $total_bytes
+    else
+        print -- $total_bytes
+    fi
+}
+
+# Get Used RAM in Bytes (Approximation)
+# Usage: get_ram_used [-f|--format]
+# Returns: Bytes (integer) or formatted string
+get_ram_used() {
+    local format=0
+    [[ "$1" == "-f" || "$1" == "--format" ]] && format=1
+    
+    local used_bytes=0
+
+    if is_macos; then
+        # macOS: (Active + Wired) * PageSize
+        local vm_stat=$(vm_stat)
+        local page_size=4096 # Fallback
+        
+        # Try to get actual page size
+        local sys_page
+        sys_page=$(sysctl -n hw.pagesize 2>/dev/null)
+        [[ -n "$sys_page" ]] && page_size=$sys_page
+        
+        # Parse values
+        local active=${${(M)${(f)vm_stat}:#Pages active:*}#Pages active:}
+        local wired=${${(M)${(f)vm_stat}:#Pages wired down:*}#Pages wired down:}
+        
+        # Clean numeric
+        active=${active//[^0-9]/}
+        wired=${wired//[^0-9]/}
+        
+        used_bytes=$(( (active + wired) * page_size ))
+        
+    elif [[ -r /proc/meminfo ]]; then
+        # Linux: MemTotal - MemAvailable
+        local content="$(</proc/meminfo)"
+        local total=${${(M)${(f)content}:#MemTotal*}#MemTotal:}
+        local avail=${${(M)${(f)content}:#MemAvailable*}#MemAvailable:}
+        
+        total=${total//[^0-9]/}
+        avail=${avail//[^0-9]/}
+        
+        used_bytes=$(( (total - avail) * 1024 ))
+    fi
+
+    if (( format )); then
+        format_bytes $used_bytes
+    else
+        print -- $used_bytes
     fi
 }
 

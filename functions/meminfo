@@ -13,7 +13,7 @@ local free=$(get_ram_free)
 local used_pct=$(( (used * 100) / total ))
 local free_pct=$(( (free * 100) / total ))
 
-printt "Memory Info" $b $x
+printc "Memory Info" $y
 printkv "Total" "$(format_bytes $total)"
 printkv "Used"  "$(format_bytes $used) ($used_pct%)" $y
 printkv "Free"  "$(format_bytes $free) ($free_pct%)" $g

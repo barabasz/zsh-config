@@ -1,4 +1,4 @@
-# Claude Instructions
+# zsh-config: Claude Instructions
 
 Before making changes to this zsh configuration, read the relevant documentation and source files.
 

@@ -1,4 +1,4 @@
-# Development Guidelines
+# zsh-config: Development Guidelines
 
 Part of [zsh-config](README.md) documentation. Guidelines for contributing to this configuration.
 

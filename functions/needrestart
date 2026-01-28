@@ -1,9 +1,12 @@
 # needrestart - manage needrestart interactive prompts on Ubuntu
 # Disables/enables the interactive restart prompt during apt operations
+# -d | --disable : disable prompts (auto-restart services)
+# -e | --enable  : enable prompts (ask before restart)
+# -h | --help    : show help
 
 # Ubuntu only
 is_ubuntu || {
-    print -u2 "needrestart: this command is only available on Ubuntu"
+    printe "needrestart: this command is only available on Ubuntu"
     return 1
 }
 
@@ -11,7 +14,7 @@ local conf="/etc/needrestart/needrestart.conf"
 
 # Check if config exists
 [[ -f $conf ]] || {
-    print -u2 "needrestart: config file not found: $conf"
+    printe "needrestart: config file not found: $conf"
     return 1
 }
 

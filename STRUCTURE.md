@@ -1,4 +1,4 @@
-# Directory Structure
+# zsh-config: Directory Structure
 
 Part of [zsh-config](README.md) documentation.
 

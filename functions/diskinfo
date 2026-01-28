@@ -31,7 +31,7 @@ local df_output=$(command df -P "$target" 2>/dev/null)
 local last_line="${${(@f)df_output}[-1]}" # Get the last line
 local device_name="${last_line%% *}"      # Get the first word (Filesystem column)
 
-printt "Disk Info: $device_name" $b $x
+printc "Disk Info: $device_name" $y
 printkv "Total" "$(format_bytes $total)"
 printkv "Used"  "$(format_bytes $used) ($used_pct%)" $y
 printkv "Free"  "$(format_bytes $free) ($free_pct%)" $g

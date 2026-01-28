@@ -1,4 +1,4 @@
-# File Tracking System
+# zsh-config: File Tracking System
 
 Part of [zsh-config](README.md) documentation. A system to monitor sourced files and their load times for performance optimization.
 

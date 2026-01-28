@@ -1,4 +1,4 @@
-# Examples & Use Cases
+# zsh-config: Examples & Use Cases
 
 Part of [zsh-config](README.md) documentation. Code examples and common patterns.
 

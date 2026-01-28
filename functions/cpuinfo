@@ -11,7 +11,7 @@ local arch=$(get_cpu_arch)
 local cores=$(get_cpu_count)
 local load=$(get_load_average)
 
-printt "CPU Info" $b $x
+printc "CPU Info" $y
 printkv "Model" "$model"
 printkv "Architecture" "$arch"
 printkv "Cores" "$cores"

@@ -54,12 +54,6 @@ is_wsl() {
     fi
 }
 
-# Check if running as root
-# Usage: is_root
-is_root() {
-    (( EUID == 0 ))
-}
-
 # --- System Information Retrieval ---
 
 # Get OS name (ID)
@@ -153,19 +147,6 @@ os_version() {
     fi
 }
 
-# Get system architecture (Normalized)
-# Usage: get_arch
-# Returns: "arm64", "x64", "x86"
-get_arch() {
-    local arch=${CPUTYPE:-$(uname -m)}
-    case $arch in
-        x86_64|amd64) print "x64" ;;
-        arm64|aarch64) print "arm64" ;;
-        i386|i686) print "x86" ;;
-        *) print $arch ;;
-    esac
-}
-
 # Get kernel version
 # Usage: get_kernel_version
 get_kernel_version() {
@@ -241,95 +222,6 @@ get_load_average() {
         # First field
         read load _ < /proc/loadavg
         print -- $load
-    fi
-}
-
-# Get Number of CPU Cores
-# Usage: get_cpu_count
-get_cpu_count() {
-    if is_macos; then
-        sysctl -n hw.ncpu
-    elif is_linux; then
-        # nproc is standard, fallback to counting cpuinfo
-        if (( ${+commands[nproc]} )); then
-            nproc
-        else
-            grep -c ^processor /proc/cpuinfo
-        fi
-    fi
-}
-
-# Get Total RAM in Bytes
-# Usage: get_ram_total [-f|--format]
-# Returns: Bytes (integer) or formatted string (e.g. "16.00 GiB")
-get_ram_total() {
-    local format=0
-    [[ "$1" == "-f" || "$1" == "--format" ]] && format=1
-    
-    local total_bytes=0
-    
-    if is_macos; then
-        total_bytes=$(sysctl -n hw.memsize)
-    elif [[ -r /proc/meminfo ]]; then
-        # MemTotal:        16309624 kB
-        local line=${${(M)${(f)"$(</proc/meminfo)"}:#MemTotal*}#MemTotal:}
-        # Extract number and convert kB to bytes
-        local kb=${line//[^0-9]/}
-        total_bytes=$(( kb * 1024 ))
-    fi
-
-    if (( format )); then
-        format_bytes $total_bytes
-    else
-        print -- $total_bytes
-    fi
-}
-
-# Get Used RAM in Bytes (Approximation)
-# Usage: get_ram_used [-f|--format]
-# Returns: Bytes (integer) or formatted string
-get_ram_used() {
-    local format=0
-    [[ "$1" == "-f" || "$1" == "--format" ]] && format=1
-    
-    local used_bytes=0
-
-    if is_macos; then
-        # macOS: (Active + Wired) * PageSize
-        local vm_stat=$(vm_stat)
-        local page_size=4096 # Fallback
-        
-        # Try to get actual page size
-        local sys_page
-        sys_page=$(sysctl -n hw.pagesize 2>/dev/null)
-        [[ -n "$sys_page" ]] && page_size=$sys_page
-        
-        # Parse values
-        local active=${${(M)${(f)vm_stat}:#Pages active:*}#Pages active:}
-        local wired=${${(M)${(f)vm_stat}:#Pages wired down:*}#Pages wired down:}
-        
-        # Clean numeric
-        active=${active//[^0-9]/}
-        wired=${wired//[^0-9]/}
-        
-        used_bytes=$(( (active + wired) * page_size ))
-        
-    elif [[ -r /proc/meminfo ]]; then
-        # Linux: MemTotal - MemAvailable
-        local content="$(</proc/meminfo)"
-        local total=${${(M)${(f)content}:#MemTotal*}#MemTotal:}
-        local avail=${${(M)${(f)content}:#MemAvailable*}#MemAvailable:}
-        
-        total=${total//[^0-9]/}
-        avail=${avail//[^0-9]/}
-        
-        used_bytes=$(( (total - avail) * 1024 ))
-    fi
-
-    if (( format )); then
-        format_bytes $used_bytes
-    else
-        print -- $used_bytes
     fi
 }
 

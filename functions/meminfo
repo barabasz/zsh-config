@@ -1,0 +1,19 @@
+# Display system memory (RAM) usage statistics
+# Usage: meminfo
+
+# Check dependencies
+(( ${+functions[get_ram_total]} )) || { printe "Missing get_ram_total()"; return 1; }
+(( ${+functions[format_bytes]} ))  || { printe "Missing format_bytes()"; return 1; }
+
+local total=$(get_ram_total)
+local used=$(get_ram_used)
+local free=$(get_ram_free)
+
+# Calculate percentages (using integer math)
+local used_pct=$(( (used * 100) / total ))
+local free_pct=$(( (free * 100) / total ))
+
+printt "Memory Info" $b $x
+printkv "Total" "$(format_bytes $total)"
+printkv "Used"  "$(format_bytes $used) ($used_pct%)" $y
+printkv "Free"  "$(format_bytes $free) ($free_pct%)" $g

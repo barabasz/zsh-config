@@ -1,0 +1,37 @@
+# Display disk usage statistics for a specific directory or mount point
+# Usage: diskinfo [path]
+#
+#   [path]: The directory to analyze (defaults to current directory '.')
+
+local target="${1:-.}"
+
+# Check dependencies
+(( ${+functions[get_disk_total]} )) || { printe "Missing get_disk_total()"; return 1; }
+(( ${+functions[format_bytes]} ))  || { printe "Missing format_bytes()"; return 1; }
+
+# Retrieve data
+local total=$(get_disk_total "$target")
+
+# If total is 0 or empty, the path is invalid
+if [[ -z "$total" || "$total" == "0" ]]; then
+    printe "Invalid path: $target"
+    return 1
+fi
+
+local used=$(get_disk_used "$target")
+local free=$(get_disk_free "$target")
+
+# Calculate percentages
+local used_pct=$(( (used * 100) / total ))
+local free_pct=$(( (free * 100) / total ))
+
+# Get filesystem/device name (e.g., /dev/disk1s1 or overlay)
+# We run df again locally just to grab the first column of the output
+local df_output=$(command df -P "$target" 2>/dev/null)
+local last_line="${${(@f)df_output}[-1]}" # Get the last line
+local device_name="${last_line%% *}"      # Get the first word (Filesystem column)
+
+printt "Disk Info: $device_name" $b $x
+printkv "Total" "$(format_bytes $total)"
+printkv "Used"  "$(format_bytes $used) ($used_pct%)" $y
+printkv "Free"  "$(format_bytes $free) ($free_pct%)" $g

@@ -4,8 +4,24 @@ zfile_track_start ${0:A}
 
 # Temporary test functions
 
-test1() {
-    print -- "This is test2"
+debug_disk() {
+  local -a opts
+  zparseopts -D -E f=opts -format=opts
+  print "DEBUG: Path arg: '${1:-.}'"
+  print "DEBUG: Opts: '${opts}'"
+
+  print "DEBUG: Running: command df -kP \"${1:-.}\""
+  local output
+  output=$(command df -kP "${1:-.}" 2>&1)
+  local ret=$?
+  
+  print "DEBUG: Exit code: $ret"
+  print "DEBUG: Output len: ${#output}"
+  print "DEBUG: Output content:\n$output"
+  
+
+  local last_line="${${(@f)output}[-1]}"
+  print "DEBUG: Last line: '$last_line'"
 }
 
 # shell files tracking - keep at the end

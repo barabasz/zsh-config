@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+primesfile="$GHDIR/scripts/python/primes/primes-cli.py"
+python3 $primesfile $*
+if [ $? != 0 ]; then return 1; else return 0; fi

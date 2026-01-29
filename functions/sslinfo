@@ -1,0 +1,224 @@
+# Wrapper around openssl to inspect certificates
+# Usage: sslinfo <host>[:port] [options] OR sslinfo -F <file> [options]
+
+local _version="0.2.5"
+
+# Ensure zutil is loaded for zparseopts
+zmodload zsh/zutil
+
+# --- Help Text ---
+local help_text="Usage: ${g}sslinfo$x ${y}<host>${c}[:port] [options]$x
+       ${g}sslinfo$x ${y}-F <file> ${c}[options]$x
+
+Arguments:
+  <host>           Hostname (e.g., google.com)
+  <host>:<port>    Hostname with port (e.g., google.com:5001)
+
+Options:
+  -F, --file <file> Use local certificate file
+
+Display Modes (mutually exclusive, default: --most):
+  -a, --all         Print full output
+  -m, --most        Print most info (skip modulus/exponent/hex dumps)
+  -A, --alt         Print Subject Alternative Names (SANs)
+  -c, --common      Print Common Name
+  -i, --issuer      Print Issuer
+  -s, --subject     Print Subject
+  -d, --dates       Print validity dates
+  -e, --end         Print expiration date (not after)
+  -f, --from        Print start date (not before)
+  -S, --serial      Print serial number
+
+Other:
+  -D, --debug       Enable debug output
+  -h, --help        Show this message
+  -v, --version     Show version"
+
+# --- Argument Parsing ---
+
+# Define output variables as arrays (idiomatic zsh/zparseopts style like in getrandom)
+local -a opt_help opt_ver opt_debug
+local -a opt_file opt_option
+local -a opt_all opt_most opt_alt opt_common opt_issuer opt_subject
+local -a opt_dates opt_end opt_from opt_serial
+local -a args_pos
+
+# Main parsing loop to handle mixed flags and positional args
+while (( $# )); do
+    # Try to parse options at the current head of argv
+    # Mapping: short=var -long=var
+    # := means argument required, = means flag
+    zparseopts -D -E \
+        h=opt_help -help=opt_help \
+        v=opt_ver -version=opt_ver \
+        D=opt_debug -debug=opt_debug \
+        F:=opt_file -file:=opt_file \
+        -option:=opt_option \
+        a=opt_all -all=opt_all \
+        m=opt_most -most=opt_most \
+        A=opt_alt -alt=opt_alt \
+        c=opt_common -common=opt_common \
+        i=opt_issuer -issuer=opt_issuer \
+        s=opt_subject -subject=opt_subject \
+        d=opt_dates -dates=opt_dates \
+        e=opt_end -end=opt_end \
+        f=opt_from -from=opt_from \
+        S=opt_serial -serial=opt_serial
+
+    # If args remain ($# > 0), the first one is NOT a known flag.
+    if (( $# )); then
+        local arg=$1
+        
+        # Check if it looks like a flag (unknown option)
+        if [[ $arg == -* ]]; then
+            printe "Unknown option: $arg"
+            return 1
+        fi
+        
+        # It's a positional argument (host)
+        args_pos+=("$arg")
+        shift
+    fi
+done
+
+# --- Immediate Checks ---
+
+# Check array length, exactly like in getrandom
+if (( ${#opt_help} > 0 )); then
+    print -- $help_text
+    return 0
+fi
+
+if (( ${#opt_ver} > 0 )); then
+    print -- "sslinfo v.$_version"
+    return 0
+fi
+
+# Dependency check
+(( ${+commands[openssl]} )) || { printe "Error: openssl is required."; return 1 }
+
+# --- Configuration ---
+
+local host port="443"
+# Extract value from zparseopts array (format is usually: -flag value)
+local file=$opt_file[2] 
+local debug=$opt_debug
+local extra_opt=$opt_option[2]
+
+# Logic: File vs Host
+if [[ -n $file ]]; then
+    # Local file mode
+    [[ -f $file ]] || { printe "File not found: $file"; return 1 }
+    [[ -n $debug ]] && print -u2 "DEBUG: Reading from file $file..."
+
+elif (( ${#args_pos} >= 1 )); then
+    # Remote host mode
+    local input=$args_pos[1]
+
+    if [[ $input == *:* ]]; then
+        host=${input%:*}
+        port=${input##*:}
+    else
+        host=$input
+    fi
+    
+    [[ -n $debug ]] && print -u2 "DEBUG: Target: $host, Port: $port"
+else
+    printe "Usage error: Missing ${c}host$x or ${c}--file$x option."
+    print "Usage: ${g}sslinfo$x ${c}<host>[:port] [options]$x OR ${g}sslinfo$x ${c}-F <file> [options]$x"
+    print "Use: ${g}sslinfo$x ${c}--help$x for more information."
+    return 1
+fi
+
+# --- Mode Selection ---
+local ossl_opts
+local mode
+
+# Check array lengths to determine mode
+if (( ${#opt_all} > 0 )); then
+    ossl_opts="-text"
+    mode="all"
+elif (( ${#opt_alt} > 0 )); then
+    ossl_opts="-text -certopt no_header,no_version,no_serial,no_signame,no_pubkey,no_sigdump,no_aux"
+    mode="alt"
+elif (( ${#opt_common} > 0 )); then
+    ossl_opts="-subject -nameopt multiline"
+    mode="cn"
+elif (( ${#opt_issuer} > 0 )); then
+    ossl_opts="-issuer -nameopt multiline"
+    mode="issuer"
+elif (( ${#opt_subject} > 0 )); then
+    ossl_opts="-subject -nameopt multiline"
+    mode="subject"
+elif (( ${#opt_dates} > 0 )); then
+    ossl_opts="-dates"
+    mode="dates"
+elif (( ${#opt_end} > 0 )); then
+    ossl_opts="-enddate"
+    mode="end"
+elif (( ${#opt_from} > 0 )); then
+    ossl_opts="-startdate"
+    mode="from"
+elif (( ${#opt_serial} > 0 )); then
+    ossl_opts="-serial"
+    mode="serial"
+else
+    # Default: most info
+    ossl_opts="-text -certopt no_header,no_version,no_serial,no_signame,no_pubkey,no_sigdump,no_aux"
+    mode="most"
+fi
+
+# Append extra options
+[[ -n $extra_opt ]] && ossl_opts="$ossl_opts $extra_opt"
+
+[[ -n $debug ]] && print -u2 "DEBUG: Mode: $mode, Opts: $ossl_opts"
+
+# --- Execution ---
+local raw_output
+
+if [[ -n $host ]]; then
+    # Remote fetch (process substitution)
+    read -r -d '' raw_output < <(
+        openssl s_client -connect "$host:$port" < /dev/null 2>/dev/null \
+        | openssl x509 -noout $=ossl_opts
+    )
+else
+    # Local file read
+    read -r -d '' raw_output < <(openssl x509 -in "$file" -noout $=ossl_opts)
+fi
+
+# Validate
+[[ -z $raw_output ]] && { printe "Error: Failed to retrieve certificate info."; return 1 }
+
+# --- Formatting ---
+local -a lines
+lines=("${(f)raw_output}")
+
+case $mode in
+    alt)
+        local idx=$lines[(i)*Subject\ Alternative\ Name*]
+        if (( idx <= ${#lines} )); then
+            local san_line=$lines[idx+1]
+            print -l "${(@)${(@s:,:)san_line}## #}"
+        fi
+        ;;
+    cn)
+        local cn_line=${(M)lines:#*commonName*}
+        print -- "${cn_line##*= }"
+        ;;
+    end)
+        local end_line=${(M)lines:#notAfter=*}
+        print -- "${end_line#*=}"
+        ;;
+    from)
+        local start_line=${(M)lines:#notBefore=*}
+        print -- "${start_line#*=}"
+        ;;
+    serial)
+        local serial_line=${(M)lines:#serial=*}
+        print -- "${serial_line#*=}"
+        ;;
+    *)
+        print -r -- $raw_output
+        ;;
+esac

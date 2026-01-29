@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+# Put the Mac to sleep
+# Usage: sleepme
+
+if is_macos; then
+    pmset sleepnow
+elif is_debian_based; then
+    systemctl suspend
+else
+    printi "${g}sleepme$x is only supported on macOS and Debian-based systems."
+fi

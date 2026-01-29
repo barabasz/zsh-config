@@ -1,0 +1,21 @@
+# Measure Time To First Byte (TTFB) for a given URL
+# Usage: ttfb <hostname>
+
+(( ARGC != 1 )) && { printe "Usage: ttfb <hostname>"; return 1 }
+
+local url=$1
+
+# Add protocol if missing (string tests use [[ ]])
+[[ $url != http* ]] && url="https://$url"
+
+local ttfb_s
+
+# Process substitution (< <) to avoid subshell overhead ($(...))
+# We read directly from curl's output stream
+read -r ttfb_s < <(curl -s -w "%{time_starttransfer}" -o /dev/null "$url")
+
+# Verify if curl returned a value (e.g. valid domain/connection)
+[[ -z $ttfb_s ]] && { printe "Error: Could not fetch URL"; return 1 }
+
+# Native float math and formatting
+print -f "%.2f ms\n" $(( ttfb_s * 1000 ))

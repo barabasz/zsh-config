@@ -2,7 +2,9 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+##
 # Icons / glyphs
+##
 
 export ICO_BELL="🔔"
 export ICO_DEBUG="👉"

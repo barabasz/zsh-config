@@ -2,7 +2,9 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+##
 # History configuration
+##
 
 # Variables
 export HISTFILE=$ZDOTDIR/.zsh_history

@@ -2,7 +2,9 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+##
 # ANSI color codes 
+##
 
 # basic colors
 export b=$'\033[0;34m'      # blue

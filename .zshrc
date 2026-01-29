@@ -36,7 +36,7 @@ source "$ZSH_INC_DIR/hashdirs.zsh"
 (( ZSH_LOAD_APPS )) && source_zsh_dir "$ZSH_APPS_DIR"
 
 # Plugin configurations
-(( ZSH_LOAD_PLUGINS )) && source_zsh_dir "$ZSH_PLUGINS_DIR"
+(( ZSH_LOAD_PLUGINS )) && source "$ZSH_INC_DIR/plugins.zsh"
 
 # shell files tracking - keep at the end
 zfile_track_end "$ZDOTDIR/.zshrc"

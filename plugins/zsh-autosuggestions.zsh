@@ -1,6 +1,4 @@
 #!/bin/zsh
-# Shell files tracking - keep at the top
-zfile_track_start ${0:A}
 
 # zsh-autosuggestions - Fish-like fast/unobtrusive autosuggestions for Zsh
 # https://github.com/zsh-users/zsh-autosuggestions
@@ -18,5 +16,3 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
 bindkey '^ ' autosuggest-accept        # Ctrl+Space: accept entire suggestion
 bindkey '^[[1;5C' forward-word         # Ctrl+Right: accept word-by-word
 
-# shell files tracking - keep at the end
-zfile_track_end ${0:A}

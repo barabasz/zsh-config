@@ -1,10 +1,7 @@
 #!/bin/zsh
-# Shell files tracking - keep at the top
-zfile_track_start ${0:A}
 
-# sudo-esc: adds 'sudo' before the last command after pressing 'Esc Esc' in Zsh.
-
-register_plugin sudo-esc
+# sudo-esc: adds 'sudo' before the last command after pressing 'Esc Esc' in Zsh
+# https://github.com/barabasz/zsh-config/blob/main/plugins/sudo-esc.zsh
 
 sudo-esc() {
     # Ensure standard Zsh behavior inside the widget
@@ -77,6 +74,3 @@ zle -N sudo-esc
 bindkey -M emacs '\e\e' sudo-esc
 bindkey -M vicmd '\e\e' sudo-esc
 bindkey -M viins '\e\e' sudo-esc
-
-# shell files tracking - keep at the end
-zfile_track_end ${0:A}

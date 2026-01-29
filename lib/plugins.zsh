@@ -246,7 +246,7 @@ find_plugin_file() {
     [[ -n $REPLY ]]
 }
 
-# Load a plugin by name
+# Load a plugin by name (from wrapper)
 # Automatically compiles .zsh files if needed
 # Usage: load_plugin <name> [repo]
 load_plugin() {
@@ -286,6 +286,80 @@ load_plugin() {
     }
 
     ZPLUGINS_LOADED[$name]=$REPLY
+}
+
+# Load a plugin by name directly (without wrapper)
+# Usage: load_plugin_direct <name> <repo>
+load_plugin_directly() {
+    (( ARGC == 2 )) || {
+        printe "Usage: load_plugin_direct <name> <repo>"
+        return 1
+    }
+    local name=$1
+    local repo=$2
+    local target=$ZSH_PLUGINS_DIR/$name
+
+    find_plugin_file "$target" || {
+        printe "Cannot find main file for plugin '$name'"
+        return 1
+    }
+
+    # zfile tracking start
+    zfile_track_start $REPLY
+    # actual loading
+    load_plugin "$name" "$repo"
+    # zfile tracking end
+    zfile_track_end $REPLY
+}
+
+# Load a plugin wrapper file
+# Usage: load_plugin_wrapper <name>
+load_plugin_wrapper() {
+    (( ARGC == 1 )) || {
+        printe "Usage: load_plugin_wrapper <name>"
+        return 1
+    }
+    local name=$1
+    local wrapper_file=$ZSH_PLUGINS_DIR/$name.zsh
+    [[ -f $wrapper_file ]] || {
+        printe "Wrapper file '$wrapper_file' not found"
+        return 1
+    }
+    # zfile tracking start
+    zfile_track_start $wrapper_file
+    # actual sourcing
+    source "$wrapper_file" || {
+        printe "Failed to source $wrapper_file"
+        return 1
+    }
+    # zfile tracking end
+    zfile_track_end $wrapper_file
+}
+
+# Source a standalone plugin file directly
+# Usage: source_plugin <name>
+source_plugin() {
+    (( ARGC == 1 )) || {
+        printe "Usage: source_plugin <name>"
+        return 1
+    }
+    local name=$1
+    local file=$ZSH_PLUGINS_DIR/$name.zsh
+    [[ -f $file ]] || {
+        printe "Plugin file '$file' not found"
+        return 1
+    }
+    # zfile tracking start
+    zfile_track_start $file
+    # actual sourcing
+    source "$file" || {
+        printe "Failed to source $file"
+        return 1
+    }
+    # zfile tracking end
+    zfile_track_end $file
+
+    register_plugin $name
 }
 
 # =============================================================================

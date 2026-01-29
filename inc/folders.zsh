@@ -2,7 +2,10 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
-# Folders
+##
+# Folders configuration
+##
+
 export TMP=$HOME/.tmp
 export TEMP=$TMP
 export TEMPDIR=$TMP

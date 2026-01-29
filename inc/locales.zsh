@@ -3,6 +3,10 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+##
+# Locales configuration
+##
+
 # English language
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en:C

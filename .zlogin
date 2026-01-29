@@ -6,8 +6,8 @@ zfile_track_start "$ZDOTDIR/.zlogin"
 unset d # set by zsh
 
 # Show login info
-[[ $ZSH_SYS_INFO == 1 ]] && sysinfo
-[[ $ZSH_LOGIN_INFO == 1 ]] && logininfo
+(( ZSH_SYS_INFO ))   && sysinfo
+(( ZSH_LOGIN_INFO )) && logininfo
 
 # Shell files tracking - keep at the end
 zfile_track_end "$ZDOTDIR/.zlogin"

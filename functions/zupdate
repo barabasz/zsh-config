@@ -1,0 +1,25 @@
+# Update zsh-config and all plugins
+# Usage: zupdate
+
+# Ensure no arguments are provided
+(( ARGC == 0 )) || {
+    printe "zupdate: This command accepts no arguments."
+    return 1
+}
+
+printi "Updating zsh-config..."
+local zdir=${ZDOTDIR:A}
+git -C $zdir pull --rebase 2>&1 
+if (( $status != 0 )); then
+    printe "zupdate: Git pull failed for zsh-config."
+else
+    prints "zupdate: zsh-config updated successfully."
+fi
+
+printi "Updating zsh plugins..."
+update_plugins
+if (( $status != 0 )); then
+    printe "zupdate: One or more plugins failed to update."
+else
+    prints "zupdate: all plugins updated successfully."
+fi

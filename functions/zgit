@@ -27,6 +27,7 @@ case "$cmd" in
         (( count == 0 )) && { printe "No repositories found in $GHDIR."; return 1; }
 
         printc "Pulling $count repositories from the remote." $y
+        ptint "Working directory: $c$GHDIR$c"
 
         local i=1 repo
         for repo in $repos; do
@@ -51,6 +52,7 @@ case "$cmd" in
         (( count == 0 )) && { printe "No repositories found in $GHDIR."; return 1; }
 
         printc "Pushing $count repositories to the remote." $y
+        ptint "Working directory: $c$GHDIR$c"
 
         local i=1 repo
         for repo in $repos; do
@@ -122,22 +124,23 @@ case "$cmd" in
         done
         ;;
 
-    help|-h|--help|*)
+    help|-h|--help)
         printc "zgit - Git Bulk Operations" $y
         print "Usage: zgit <command>"
         print ""
-        printul "pull        : Pull --rebase all repos in \$GHDIR" \
-                "push        : Commit 'update' and push all repos in \$GHDIR" \
-                "push-force  : Force push CURRENT directory (rebase workflow)" \
-                "list        : List all repositories in \$GHDIR" \
-                "reset       : Hard reset all repos in \$GHDIR to origin/main" \
-                "status      : Show git status for all repos in \$GHDIR" \
-                "help        : Show this message"
-        
-        if [[ "$cmd" != "help" && "$cmd" != "-h" && "$cmd" != "--help" && -n "$cmd" ]]; then
-            print ""
-            printe "Unknown command: $cmd"
-            return 1
-        fi
+        printul "${g}pull$x        : Pull --rebase all repos in \$GHDIR" \
+                "${g}push$x        : Commit 'update' and push all repos in \$GHDIR" \
+                "${g}push-force$x  : Force push CURRENT directory (rebase workflow)" \
+                "${g}list$x        : List all repositories in \$GHDIR" \
+                "${g}reset$x       : Hard reset all repos in \$GHDIR to origin/main" \
+                "${g}status$x      : Show git status for all repos in \$GHDIR" \
+                "${g}help$x        : Show this message"
+        print "\nEnsure $y\$GHDIR$x is set to the parent directory containing your git repositories."
+        print "Currently, $y\$GHDIR$x is set to: $c$GHDIR$c"
+        ;;
+    *)
+        printe "zgit: Unknown command: $cmd"
+        printi "Use 'zgit help' to see available commands."
+        return 1
         ;;
 esac

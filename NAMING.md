@@ -53,7 +53,10 @@ Part of [zsh-config](README.md) documentation. Conventions for naming functions,
 - Examples: `f-sy-h.zsh`, `zsh-autosuggestions.zsh`
 
 **Include Files:** `{purpose}.zsh`
-- Examples: `zsh.zsh`, `colors.zsh`, `history.zsh`
+- Examples: `modules.zsh`, `colors.zsh`, `history.zsh`
+
+**Root Config Files:** `.z{name}` or `.zsh{name}`
+- Examples: `.zconfig`, `.zshenv`, `.zshrc`
 
 **User Functions:** No extension, lowercase
 - Examples: `sysinfo`, `logininfo`, `zfiles`

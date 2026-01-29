@@ -57,7 +57,7 @@ Example output:
    err file                     time     dir
  1. ✓ .zshenv               12.45 ms  zsh
  2. ✓   zfiles.zsh           0.23 ms  inc
- 3. ✓   zsh.zsh              1.12 ms  inc
+ 3. ✓   .zconfig             1.12 ms  zsh
 ...
                             80.39 ms  total
 ```

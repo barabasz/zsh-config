@@ -10,10 +10,12 @@ Part of [zsh-config](README.md) documentation.
 ├── .zlogin              # Post-login actions
 ├── .zlogout             # Logout cleanup
 ├── .zsh_history         # Command history
+├── .zconfig             # Core configuration variables
 │
 ├── inc/                 # Core configuration modules
 │   ├── zfiles.zsh          # File tracking infrastructure
-│   ├── zsh.zsh             # Core config, variables, zsh modules
+│   ├── modules.zsh         # Zsh module loading (zmodload)
+│   ├── functions.zsh       # Zsh autoloaded functions (autoload)
 │   ├── bootstrap.zsh       # Bootstrap functions
 │   ├── xdg.zsh             # XDG Base Directories
 │   ├── folders.zsh         # User folder paths

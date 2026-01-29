@@ -15,7 +15,7 @@ Before adding or modifying code, review existing implementations to prevent dupl
 
 | Directory | Purpose |
 |-----------|---------|
-| `/*.zsh`, `/.zsh*` | Root-level configuration files |
+| `/*.zsh`, `/.zsh*`, `/.zconfig` | Root-level configuration files |
 | `inc/*.zsh` | Core configuration modules |
 | `lib/*.zsh` | Helper function library |
 | `functions/*` | Autoloaded user functions |
@@ -24,4 +24,4 @@ Before adding or modifying code, review existing implementations to prevent dupl
 
 ---
 
-*Last updated: 2026-01-26*
+*Last updated: 2026-01-29*

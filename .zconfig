@@ -2,13 +2,11 @@
 # Shell files tracking - keep at the top
 zfile_track_start ${0:A}
 
+##
 # Zsh core configuration
-
-export ZSH_CONFIG_VERSION="20260128v2"        # configuration version
+##
 
 # Directories configuration
-export CONFDIR=$HOME/.config
-export ZDOTDIR=$CONFDIR/zsh
 export ZCACHEDIR=$ZDOTDIR/cache
 export SHELL_SESSION_DIR="$ZCACHEDIR/sessions"
 export ZSH_INC_DIR=$ZDOTDIR/inc

@@ -1,0 +1,18 @@
+# Open the file defined in $ZCONFIG using the default editor
+# Usage: zconfig
+
+# Ensure no arguments are provided
+(( ARGC == 0 )) || {
+    printe "Error: zconfig accepts no arguments."
+    return 1
+}
+
+# Ensure the target variable is actually set
+if [[ -z $ZCONFIG ]]; then
+    printe "Error: \$ZCONFIG variable is not set."
+    return 1
+fi
+
+# Execute the editor on the file
+# ${EDITOR:-vi} uses $EDITOR if set and not null, otherwise defaults to 'vi'
+"${EDITOR:-vi}" "$ZCONFIG"

@@ -56,6 +56,7 @@ time zsh -lic "exit"
 ├── .zshrc            # Interactive shell setup
 ├── .zprofile         # Login shell initialization
 ├── .zlogin           # Post-login actions
+├── .zconfig          # Core configuration variables
 ├── inc/              # Core configuration modules
 ├── lib/              # Helper function library
 ├── apps/             # Application integrations
@@ -84,7 +85,8 @@ Core configuration split by responsibility. Each file handles one concern.
 | File | Purpose |
 |------|---------|
 | `zfiles.zsh` | File tracking infrastructure |
-| `zsh.zsh` | Core config, directory variables, zsh modules |
+| `modules.zsh` | Zsh module loading (`zmodload`) |
+| `functions.zsh` | Zsh autoloaded functions (`autoload`) |
 | `bootstrap.zsh` | Bootstrap functions (`is_debug`, `source_zsh_dir`) |
 | `xdg.zsh` | XDG Base Directory variables |
 | `folders.zsh` | User folder path variables |
@@ -160,7 +162,7 @@ Autoloaded functions available on-demand. No function declaration needed in file
 
 ## Configuration Variables
 
-All configuration variables are defined in `inc/zsh.zsh` with sensible defaults. Override them by setting before shell startup (e.g., `ZSH_DEBUG=0 zsh`).
+All configuration variables are defined in `.zconfig` with sensible defaults. Override them by setting before shell startup (e.g., `ZSH_DEBUG=0 zsh`).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -169,6 +171,8 @@ All configuration variables are defined in `inc/zsh.zsh` with sensible defaults.
 | `ZSH_LOGIN_INFO` | 0 | Show login info on startup |
 | `ZSH_SYS_INFO` | 0 | Show system info on startup |
 | `ZSH_AUTOCOMPILE` | 1 | Auto-compile `.zsh` to `.zwc` bytecode |
+| `ZSH_LOAD_LIB` | 1 | Load library files from `lib/` |
+| `ZSH_LOAD_FUNCS` | 1 | Load functions from `functions/` |
 | `ZSH_LOAD_APPS` | 1 | Load app configurations from `apps/` |
 | `ZSH_LOAD_PLUGINS` | 1 | Load plugins from `plugins/` |
 | `ZSH_PLUGINS_AUTOINSTALL` | 1 | Auto-install missing plugins |

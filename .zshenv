@@ -1,10 +1,19 @@
 #!/bin/zsh
-# Shell files tracking - keep at the top
-source "$HOME/.config/zsh/inc/zfiles.zsh"
+
+# Configuration version
+export ZSH_CONFIG_VERSION="20260129v1"
+# Directories configuration
+export CONFDIR=$HOME/.config
+export ZDOTDIR=$CONFDIR/zsh
+# Zsh configuration file
+export ZCONFIG=$ZDOTDIR/.zconfig
+
+# Shell files tracking initialization
+source "$ZDOTDIR/inc/zfiles.zsh"
 zfile_track_start ${0:A}
 
 # Zsh core configuration
-source "$HOME/.config/zsh/inc/zsh.zsh"
+source $ZCONFIG
 
 # Zsh module loading
 source "$ZSH_INC_DIR/modules.zsh"

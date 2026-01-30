@@ -10,16 +10,13 @@ Part of [zsh-config](../README.md) documentation.
 ├── .zlogin              # Post-login actions
 ├── .zlogout             # Logout cleanup
 ├── .zsh_history         # Command history
-├── env.zsh             # Core configuration variables
+├── env.zsh              # Core configuration variables
 │
 ├── inc/                 # Core configuration modules
 │   ├── zfiles.zsh          # File tracking infrastructure
 │   ├── modules.zsh         # Zsh module loading (zmodload)
 │   ├── functions.zsh       # Zsh autoloaded functions (autoload)
-│   ├── bootstrap.zsh       # Bootstrap functions
 │   ├── xdg.zsh             # XDG Base Directories
-│   ├── folders.zsh         # User folder paths
-│   ├── variables.zsh       # Environment variables
 │   ├── colors.zsh          # ANSI color codes
 │   ├── icons.zsh           # Icon/glyph exports
 │   ├── history.zsh         # History options
@@ -27,26 +24,57 @@ Part of [zsh-config](../README.md) documentation.
 │   ├── path.zsh            # PATH configuration
 │   ├── hashdirs.zsh        # Named directory hashes
 │   ├── aliases.zsh         # Aliases
-│   └── locales.zsh         # Locale settings
+│   ├── locales.zsh         # Locale settings
+│   └── plugins.zsh         # Plugin loading
 │
 ├── lib/                 # Helper function library
+│   ├── archive.zsh         # Archive extraction/compression
+│   ├── arrays.zsh          # Array utilities
+│   ├── clipboard.zsh       # Clipboard operations
 │   ├── compile.zsh         # Bytecode compilation
+│   ├── cwg.zsh             # Random number generator
+│   ├── date.zsh            # Date/time functions
 │   ├── files.zsh           # File/path tests
-│   ├── system.zsh          # OS detection & info
-│   ├── strings.zsh         # String manipulation
-│   ├── shell.zsh           # Shell info functions
+│   ├── hardware.zsh        # Hardware info
+│   ├── math.zsh            # Math utilities
+│   ├── network.zsh         # Network utilities
+│   ├── path.zsh            # PATH manipulation
 │   ├── plugins.zsh         # Plugin management
-│   ├── varia.zsh           # Miscellaneous helpers
-│   └── ...                 # Other utility modules
+│   ├── print.zsh           # Formatted output
+│   ├── shell.zsh           # Shell info functions
+│   ├── strings.zsh         # String manipulation
+│   ├── system.zsh          # OS detection & info
+│   └── varia.zsh           # Miscellaneous helpers
 │
 ├── apps/                # Application integrations
-│   ├── brew.zsh            # Homebrew
+│   ├── _brew.zsh           # Homebrew (priority load)
 │   ├── omp.zsh             # Oh My Posh
+│   ├── fzf.zsh             # Fuzzy finder
 │   └── ...                 # Other app configs
 │
 ├── functions/           # Autoloaded user functions
-│   ├── sysinfo             # System information
+│   ├── zhelp               # Display help and documentation
+│   ├── zman                # List all functions
+│   ├── zinfo               # Function help/info
+│   ├── zconfig             # Edit config files
 │   ├── zfiles              # File tracking report
+│   ├── zupdate             # Update zsh-config
+│   ├── zgit                # Git bulk operations
+│   ├── sysinfo             # System information
+│   ├── logininfo           # Login information
+│   ├── cpuinfo             # CPU information
+│   ├── meminfo             # Memory information
+│   ├── diskinfo            # Disk information
+│   ├── lanip               # Local IP address
+│   ├── wanip               # Public IP address
+│   ├── mdig                # Multi-DNS query
+│   ├── sslinfo             # SSL certificate info
+│   ├── urlinfo             # URL information
+│   ├── ttfb                # Time To First Byte
+│   ├── execs               # Execute with spinner
+│   ├── collatz             # Collatz sequences
+│   ├── primes              # Prime numbers
+│   ├── getrandom           # Random number generator
 │   └── ...                 # Other functions
 │
 ├── plugins/             # Zsh plugins

@@ -41,7 +41,8 @@ For installation instructions, see [INSTALL.md](docs/INSTALL.md).
 ├── .zshrc            # Interactive shell setup
 ├── .zprofile         # Login shell initialization
 ├── .zlogin           # Post-login actions
-├── zsh.env           # Core configuration variables
+├── .zlogout          # Logout cleanup
+├── env.zsh           # Core configuration variables
 ├── inc/              # Core configuration modules
 ├── lib/              # Helper function library
 ├── apps/             # Application integrations
@@ -73,7 +74,6 @@ Core configuration split by responsibility. Each file handles one concern.
 | `modules.zsh` | Zsh module loading (`zmodload`) |
 | `functions.zsh` | Zsh autoloaded functions (`autoload`) |
 | `xdg.zsh` | XDG Base Directory variables |
-| `folders.zsh` | User folder path variables |
 | `colors.zsh` | ANSI color code variables |
 | `icons.zsh` | Icon/glyph variables |
 | `history.zsh` | History configuration and options |
@@ -82,25 +82,31 @@ Core configuration split by responsibility. Each file handles one concern.
 | `hashdirs.zsh` | Named directory hashes (`~zsh`, `~gh`, etc.) |
 | `aliases.zsh` | Command aliases |
 | `locales.zsh` | Locale settings |
+| `plugins.zsh` | Plugin loading configuration |
 
 ### Helper Library (`lib/`)
 
-Fast utility functions loaded in `.zshenv`. See individual files for available functions.
+Fast utility functions loaded in `.zshenv`. See individual files for available functions. Use `zman` to list all functions or `zinfo <function>` for details.
 
 | File | Category |
 |------|----------|
+| `archive.zsh` | Archive extraction and compression (`extract`, `compress`) |
+| `arrays.zsh` | Array utilities (`array_contains`, `array_map`, etc.) |
+| `clipboard.zsh` | Clipboard operations (`clip_copy`, `clip_paste`, etc.) |
 | `compile.zsh` | Bytecode compilation (`compile_zsh_config`, `compile_dir`, etc.) |
+| `cwg.zsh` | Complementary-multiply-with-carry random number generator |
+| `date.zsh` | Date/time functions (`now_iso`, `format_duration`, etc.) |
 | `files.zsh` | File system tests (`is_file`, `is_dir`, `is_link`, etc.) |
-| `system.zsh` | OS detection (`is_macos`, `is_linux`, `os_name`, etc.) |
-| `strings.zsh` | String manipulation (`trim`, `lowercase`, `str_contains`, etc.) |
-| `shell.zsh` | Shell info (`shell_ver`, `is_interactive`, `reload_shell`, etc.) |
+| `hardware.zsh` | Hardware info (`get_cpu_count`, `get_ram_total`, etc.) |
+| `math.zsh` | Math utilities (`abs`, `round`, `random`, `format_bytes`, etc.) |
+| `network.zsh` | Network utilities (`get_local_ip`, `is_online`, etc.) |
+| `path.zsh` | PATH manipulation (`path_append`, `path_prepend`, etc.) |
 | `plugins.zsh` | Plugin management (`install_plugin`, `load_plugin`, etc.) |
+| `print.zsh` | Print functions for formatted output (`printe`, `printkv`, etc.) |
+| `shell.zsh` | Shell info (`shell_ver`, `is_interactive`, etc.) |
+| `strings.zsh` | String manipulation (`trim`, `lowercase`, `str_contains`, etc.) |
+| `system.zsh` | OS detection (`is_macos`, `is_linux`, `os_name`, etc.) |
 | `varia.zsh` | Miscellaneous (`is_debug`, `etime`, `is_installed`, `confirm`) |
-| `print.zsh` | Print functions for formatted output |
-| `path.zsh` | PATH manipulation |
-| `arrays.zsh` | Array utilities |
-| `date.zsh` | Date/time functions |
-| `network.zsh` | Network utilities |
 
 ### Application Integrations (`apps/`)
 
@@ -142,9 +148,34 @@ See `lib/plugins.zsh` for all available functions.
 
 Autoloaded functions available on-demand. No function declaration needed in files - just write the function body directly.
 
+| Function | Description |
+|----------|-------------|
+| `zhelp` | Display helpful commands and documentation |
+| `zman` | List all zsh-config functions with filtering |
+| `zinfo` | Display help information for a specific function |
+| `zconfig` | Edit zsh config files using the default editor |
+| `zfiles` | Show loaded shell files with status and load time |
+| `zupdate` | Update zsh-config and all plugins |
+| `zgit` | Git wrapper for bulk operations on repositories |
+| `sysinfo` | Display system information summary |
+| `logininfo` | Display login information |
+| `cpuinfo` | Display CPU hardware and load statistics |
+| `meminfo` | Display memory usage statistics |
+| `diskinfo` | Display disk usage statistics |
+| `lanip` | Retrieve local IP address |
+| `wanip` | Retrieve public IP address |
+| `mdig` | Multi-DNS query tool |
+| `sslinfo` | Inspect SSL certificates |
+| `urlinfo` | URL information tool |
+| `ttfb` | Measure Time To First Byte |
+| `execs` | Execute command with animated spinner |
+| `collatz` | Calculate Collatz sequences |
+| `primes` | Prime number generator and tester |
+| `getrandom` | Generate random numbers with formatting |
+
 ## Configuration Variables
 
-All configuration variables are defined in `zsh.env` with sensible defaults. Override them by setting before shell startup (e.g., `ZSH_DEBUG=0 zsh`).
+All configuration variables are defined in `env.zsh` with sensible defaults. Override them by setting before shell startup (e.g., `ZSH_DEBUG=0 zsh`).
 
 | Variable | Default | Description |
 |----------|---------|-------------|

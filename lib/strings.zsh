@@ -76,7 +76,7 @@ capitalize() {
 # Convert string to title case (AP/Chicago style logic)
 # Usage: title_case "nothing to be afraid of"
 # Returns: "Nothing to Be Afraid Of"
-title_case() {
+titlecase() {
     (( ARGC == 1 )) || return 1
     local str="${1:l}"
     local -a words=(${(s: :)str})

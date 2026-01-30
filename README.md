@@ -14,6 +14,7 @@ For installation instructions, see [INSTALL.md](docs/INSTALL.md).
 | [ZSH.md](docs/ZSH.md) | Zsh coding style |
 | [ZFILES.md](docs/ZFILES.md) | File tracking system |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Examples & use cases |
+| [FUNCTIONS.md](docs/FUNCTIONS.md) | List of functions |
 
 ## Key Features
 

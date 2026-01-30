@@ -1,0 +1,72 @@
+# Display help information for a function from lib/ or functions/
+# Usage: zinfo <function_name>
+
+(( ARGC == 1 )) || { print -u2 "Usage: zinfo <function_name>"; return 1 }
+
+local func_name="$1"
+local zsh_dir="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
+local lib_dir="$zsh_dir/lib"
+local func_dir="$zsh_dir/functions"
+
+# Check if it's a function from /functions directory
+if [[ -f "$func_dir/$func_name" ]]; then
+    # Print header
+    print "${g}${func_name}${x} is a function from ${c}/functions/${func_name}${x}"
+
+    local line first=1
+    while IFS= read -r line; do
+        # Stop at first non-comment or empty line
+        [[ "$line" != \#* ]] && break
+        # Print comment without leading # and space
+        line="${line#\#}"
+        line="${line# }"
+        # First line in yellow
+        if (( first )); then
+            print -r -- "${y}${line}${x}"
+            first=0
+        else
+            print -r -- "$line"
+        fi
+    done < "$func_dir/$func_name"
+    return 0
+fi
+
+# Search in /lib directory
+local file found=0
+local -a comment_block=()
+
+for file in "$lib_dir"/*.zsh(.N); do
+    comment_block=()
+
+    while IFS= read -r line; do
+        # Check if line defines the function we're looking for
+        if [[ "$line" =~ "^${func_name}\\s*\\(\\)" ]]; then
+            found=1
+            # Print header
+            print "${g}${func_name}${x} is a helper function from ${c}/lib/${file:t}${x}"
+            # Print collected comments (first line in yellow)
+            local first=1
+            for cmt in "${comment_block[@]}"; do
+                cmt="${cmt#\#}"
+                cmt="${cmt# }"
+                if (( first )); then
+                    print -r -- "${y}${cmt}${x}"
+                    first=0
+                else
+                    print -r -- "$cmt"
+                fi
+            done
+            return 0
+        elif [[ "$line" == \#* ]]; then
+            # Accumulate comment lines
+            comment_block+=("$line")
+        else
+            # Non-comment line resets the block
+            comment_block=()
+        fi
+    done < "$file"
+done
+
+# Function not found
+print -u2 "Function '$func_name' not found"
+return 1

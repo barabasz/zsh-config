@@ -1,18 +1,29 @@
 # List all user functions from lib/ and functions/ directories
-# Usage: zman [-g|--group] [keyword]
+# Usage: zman [-g|--group] [-m|--markdown] [keyword]
 #
-#   -g, --group:  Group functions by source file/directory
-#   keyword:      Filter results to show only lines containing keyword
+#   -g, --group:     Group functions by source file/directory
+#   -m, --markdown:  Output as markdown table (excludes -g)
+#   keyword:         Filter results to show only lines containing keyword
 
 local -A opts
 local grouped=0
+local markdown=0
 local keyword=""
 
 # Parse options
-zparseopts -D -A opts g -group
+zparseopts -D -A opts g -group m -markdown
 
 # Check if -g or --group was provided
 (( ${+opts[-g]} || ${+opts[--group]} )) && grouped=1
+
+# Check if -m or --markdown was provided
+(( ${+opts[-m]} || ${+opts[--markdown]} )) && markdown=1
+
+# Options -g and -m are mutually exclusive
+if (( grouped && markdown )); then
+    print -u2 "Error: -g and -m options are mutually exclusive"
+    return 1
+fi
 
 # Get the optional keyword argument
 (( ARGC >= 1 )) && keyword="$1"
@@ -31,8 +42,8 @@ local -a descs=()      # descriptions
 local file fname desc
 for file in "$func_dir"/*(.N); do
     fname="${file:t}"
-    # Skip self and functions starting with _
-    [[ "$fname" == "zman" || "$fname" == _* ]] && continue
+    # Skip functions starting with _
+    [[ "$fname" == _* ]] && continue
     # Read first line (description comment) - pure zsh
     IFS= read -r desc < "$file"
     desc="${desc#\#}"           # Remove leading #
@@ -190,7 +201,26 @@ _zman_count_group() {
 local total_count=0
 
 # Output based on mode
-if (( grouped )); then
+if (( markdown )); then
+    # Markdown table output
+    print "| function | location | description |"
+    print "| -------- | -------- | ----------- |"
+
+    for idx in "${sorted_indices[@]}"; do
+        local name="${funcs[idx]}" src="${sources[idx]}" desc="${descs[idx]}"
+        # Apply keyword filter if set (case-insensitive)
+        if [[ -n "$keyword" ]]; then
+            if ! _zman_matches "$name" && ! _zman_matches "$src" && ! _zman_matches "$desc"; then
+                continue
+            fi
+        fi
+        # Escape pipe characters in description
+        desc="${desc//|/\\|}"
+        print "| ${name} | ${src} | ${desc} |"
+        (( total_count++ ))
+    done
+
+elif (( grouped )); then
     # Grouped output - first functions/, then lib files alphabetically
     local group_count=0
 
@@ -226,12 +256,16 @@ if (( grouped )); then
             done
         fi
     done
+
 else
     # Default: sorted alphabetically by function name
+    # Print header
+    print -r -- "${y}function${(l:$(( max_name - 8 )):: :)}location${(l:$(( max_src - 8 )):: :)}description${x}"
+
     for idx in "${sorted_indices[@]}"; do
         _zman_print_entry "${funcs[idx]}" "${sources[idx]}" "${descs[idx]}" && (( total_count++ ))
     done
 fi
 
-# Print total
-print "\nTotal: $total_count functions"
+# Print total (not for markdown)
+(( ! markdown )) && print "\nTotal: $total_count functions"

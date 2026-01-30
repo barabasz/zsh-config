@@ -24,8 +24,9 @@ array_unique() {
 }
 
 # Get array length
-# Usage: array_length arr_name
-# Returns: number of elements
+# Usage: array_length arr_name | array_length str_name
+# Returns: number of elements | length of string
+# (for zsh strings are treated as single-element arrays)
 array_length() {
     (( ARGC == 1 )) || return 1
     print -- ${#${(P)1}}

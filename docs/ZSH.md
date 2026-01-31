@@ -1,6 +1,7 @@
 # zsh-config: Zsh Idiomatic Coding Guidelines
 
-Part of [zsh-config](../README.md) documentation. Guidelines for writing idiomatic zsh code (not bash).
+Part of [zsh-config](../README.md) documentation. 
+Guidelines for writing idiomatic zsh code (not bash).
 
 ---
 
@@ -365,6 +366,67 @@ is_file() {
         return 1
     fi
 }
+```
+
+---
+
+## Exit Codes
+
+Use standard exit codes to distinguish between different error conditions.
+
+### Standard Codes
+
+| Code | Meaning | When to use |
+|------|---------|-------------|
+| 0 | Success / true | Operation completed successfully |
+| 1 | General error / false | Operation failed, or predicate returned false |
+| 2 | Invalid usage | Wrong arguments, missing required params |
+| 127 | Not found | Command, file, or resource not found |
+
+### Important Rules
+
+1. **Never use `1` for invalid usage** - use `2` instead. This allows callers to distinguish between "operation failed" and "function called incorrectly".
+
+2. **Use `127` for "not found"** - consistent with shell's behavior when command is not found.
+
+3. **Predicates (true/false functions)** should use:
+   - `0` = true (condition met)
+   - `1` = false (condition not met)
+   - `2` = invalid usage (wrong arguments)
+
+### Examples
+
+```zsh
+# ❌ Bad - can't distinguish failure from misuse
+str_contains() {
+    (( ARGC == 2 )) || return 1    # Wrong: 1 for invalid usage
+    [[ "$1" == *"$2"* ]]
+}
+
+# ✅ Good - clear distinction
+str_contains() {
+    (( ARGC == 2 )) || return 2    # Invalid usage
+    [[ "$1" == *"$2"* ]]           # Returns 0 (true) or 1 (false)
+}
+
+# ✅ Good - using 127 for not found
+get_config() {
+    local file="$1"
+    [[ -f "$file" ]] || return 127  # File not found
+    # ... process file
+}
+```
+
+### Checking Exit Codes
+
+```zsh
+some_function "$arg"
+case $status in
+    0)   print "Success" ;;
+    1)   print "Failed" ;;
+    2)   print "Invalid usage" ;;
+    127) print "Not found" ;;
+esac
 ```
 
 ---

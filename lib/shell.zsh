@@ -80,14 +80,18 @@ is_sourced() {
 }
 
 # Check if running as root
-# Usage: is_root
+# Usage: is_root 
+# Returns: 0 when root, 1 otherwise, 2 on invalid usage
 is_root() {
+    (( ARGC == 0 )) || return 2
     (( EUID == 0 ))
 }
 
 # Check if running under tmux
 # Usage: is_tmux
+# Returns: 0 when in tmux, 1 otherwise, 2 on invalid usage
 is_tmux() {
+    (( ARGC == 0 )) || return 2
     [[ -n "$TMUX" ]]
 }
 
@@ -167,21 +171,6 @@ get_available_shells() {
     local -a lines=("${(@f)$(</etc/shells)}")
     # Filter comments (#*) and empty lines via Zsh expansion
     print -l -- ${${lines:#\#*}:#^}
-}
-
-# Measure shell startup times
-# Usage: shell_speed
-shell_speed() {
-    # Use TIMEFMT to format output of 'time' builtin cleanly
-    local TIMEFMT=$'%*E'
-    
-    print -n "${y}Non-interactive:${x} "
-    # Run a clean zsh instance, executing 'exit'
-    time zsh -f -c exit
-    
-    print -n "${y}Interactive:${x}     "
-    # Run interactive login shell initialization
-    time zsh -i -c exit
 }
 
 # Reload current shell configuration

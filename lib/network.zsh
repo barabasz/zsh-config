@@ -8,7 +8,7 @@ zfile_track_start ${0:A}
 # Usage: is_connected
 # Returns: 0 (true) if connected, 1 (false) otherwise
 is_connected() {
-    (( ARGC == 0 )) || return 1
+    (( ARGC == 0 )) || return 2 # Invalid usage
     
     if is_macos; then
         # Check specific interfaces on macOS
@@ -28,7 +28,7 @@ is_connected() {
 # Usage: is_online
 # Returns: 0 (true) if online, 1 (false) otherwise
 is_online() {
-    (( ARGC == 0 )) || return 1
+    (( ARGC == 0 )) || return 2 # Invalid usage
     # Optimization: Use ztcp instead of ping (no fork, instant timeout control via system)
     # 1.1.1.1 is Cloudflare DNS, port 53 is almost always open
     if ztcp 1.1.1.1 53 2>/dev/null; then
@@ -43,7 +43,7 @@ is_online() {
 # Usage: is_port_open "localhost" 80
 # Returns: 0 (true) if open, 1 (false) otherwise
 is_port_open() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     local host=$1
     local port=$2
 
@@ -62,6 +62,7 @@ is_port_open() {
 # Usage: get_hostname
 # Returns: "macbook"
 get_hostname() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     print -- $HOST
 }
 
@@ -69,6 +70,7 @@ get_hostname() {
 # Usage: get_fqdn
 # Returns: "macbook.local" or "server.example.com"
 get_fqdn() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_linux; then
         command hostname -f
     else
@@ -81,6 +83,7 @@ get_fqdn() {
 # Usage: get_active_interface
 # Returns: "en0" or "eth0"
 get_active_interface() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_macos; then
         # Route get default returns interface name
         local route_info
@@ -103,6 +106,7 @@ get_active_interface() {
 # Usage: get_interfaces
 # Returns: list of interfaces (one per line)
 get_interfaces() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_linux; then
         # Pure Zsh: glob /sys/class/net files
         print -l /sys/class/net/*(N:t)
@@ -116,7 +120,7 @@ get_interfaces() {
 # Usage: get_mac_address "eth0"
 # Returns: "aa:bb:cc:dd:ee:ff"
 get_mac_address() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     local iface=$1
 
     if is_linux; then
@@ -144,6 +148,7 @@ get_mac_address() {
 # Usage: get_local_ip [interface]
 # Returns: IP address
 get_local_ip() {
+    (( ARGC <= 1 )) || return 2 # Invalid usage
     local iface=$1
 
     if is_macos; then
@@ -183,6 +188,7 @@ get_local_ip() {
 # Returns: IP address
 # Optimization: Uses DNS (dig) first as per 'wanip' script for max speed
 get_public_ip() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     local ip
     
     # Method 1: DNS (Ultra fast, ~20-50ms)
@@ -217,6 +223,7 @@ get_public_ip() {
 # Usage: get_gateway
 # Returns: Gateway IP
 get_gateway() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_macos; then
         local out
         out=$(command route -n get default 2>/dev/null)
@@ -233,6 +240,7 @@ get_gateway() {
 # Usage: get_dns_servers
 # Returns: list of DNS IPs
 get_dns_servers() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_macos; then
         # Parse scutil output for cleaner results than resolv.conf
         command scutil --dns | while read -r line; do
@@ -252,6 +260,7 @@ get_dns_servers() {
 # Usage: get_wifi_ssid [interface]
 # Returns: "MyWiFiNetwork"
 get_wifi_ssid() {
+    (( ARGC <= 1 )) || return 2 # Invalid usage
     local iface=$1
 
     if is_macos; then
@@ -299,7 +308,7 @@ get_wifi_ssid() {
 # Usage: get_open_ports
 # Returns: List of "PORT: COMMAND (PID)"
 get_open_ports() {
-    (( ARGC == 0 )) || return 1
+    (( ARGC == 0 )) || return 2 # Invalid usage
     
     if is_macos; then
         # macOS: lsof is the most reliable standard tool
@@ -340,7 +349,7 @@ get_open_ports() {
 # Check if string is a valid IPv4 address
 # Usage: is_valid_ip "192.168.1.1"
 is_valid_ip() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     local octet='(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])'
     # Compose the full pattern: octet.octet.octet.octet
     [[ $1 =~ ^$octet\.$octet\.$octet\.$octet$ ]]
@@ -349,7 +358,7 @@ is_valid_ip() {
 # Check if domain name is valid format
 # Usage: is_domain_valid "example.com"
 is_domain_valid() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     local domain=$1
     # Basic regex: alphanumeric parts separated by dots, min 2 chars TLD
     local pattern='^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
@@ -359,7 +368,7 @@ is_domain_valid() {
 # Check if string is a valid URL (supports http, https, ftp, ftps)
 # Usage: is_url_valid "https://example.com:8080/path"
 is_url_valid() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
 
     # Scheme: http, https, ftp, ftps
     local scheme='(https?|ftps?)'
@@ -384,7 +393,7 @@ is_url_valid() {
 # Usage: http_status "https://google.com"
 # Returns: 200
 http_status() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     if (( ${+commands[curl]} )); then
         command curl -I -s -o /dev/null -w "%{http_code}" "$1"
     else
@@ -395,7 +404,7 @@ http_status() {
 # Download file with progress
 # Usage: download "url" "output"
 download() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     local url=$1
     local out=$2
     
@@ -412,7 +421,7 @@ download() {
 # Scan common ports on a host
 # Usage: scan_ports "192.168.1.1"
 scan_ports() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     local host=$1
     local port
     local -a common_ports=(21 22 23 25 53 80 443 3000 3306 5432 8000 8080)
@@ -429,6 +438,7 @@ scan_ports() {
 # Flush DNS cache
 # Usage: flush_dns
 flush_dns() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     if is_macos; then
         sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
         prints "macOS DNS cache flushed"

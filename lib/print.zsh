@@ -6,34 +6,13 @@ zfile_track_start ${0:A}
 # Depends on colors and glyphs defined in inc/bootstrap.zsh
 # (e.g. $r, $g, $x, $ICO_ERROR, $ICO_OK etc.)
 
-# Print available print functions (for demo purposes)
-# Usage: printdemo
-printdemo() {
-    typeset -A print_funcs=(
-        printe Error
-        printw Warning
-        printi Info
-        prints Success
-        printd Debug
-        printb Bell
-    )
-    printh "print* demo" $y $r
-    local func desc
-    for func desc in ${(kv)print_funcs}; do
-        if (( ${+functions[$func]} )); then
-            $func "This is a demo of $c$func$x function ($desc)."
-        fi
-    done
-    printl
-    printkv "Key" "Value"
-    yesno "Do you like Zsh?" && prints "Great!" || printw "Too bad..."
-}
-
 # --- Standard Logging ---
 
 # Print error message to stderr
 # Usage: printe "Error text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 printe() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"              # Text Color
     local glyph="${3:-$ICO_ERROR}"   # Glyph (from global vars)
@@ -44,7 +23,9 @@ printe() {
 
 # Print warning message to stderr
 # Usage: printw "Warning text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 printw() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"
     local glyph="${3:-$ICO_WARN}"
@@ -55,7 +36,9 @@ printw() {
 
 # Print bell message to stdout (with sound)
 # Usage: printb "Info text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 printb() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"
     local glyph="${3:-$ICO_BELL}"
@@ -68,7 +51,9 @@ printb() {
 
 # Print info message to stdout
 # Usage: printi "Info text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 printi() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"
     local glyph="${3:-$ICO_INFO}"
@@ -79,7 +64,9 @@ printi() {
 
 # Print success message to stdout
 # Usage: prints "Success text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 prints() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"
     local glyph="${3:-$ICO_OK}"
@@ -92,7 +79,9 @@ functions[printok]=$functions[prints]
 
 # Print debug message (only if debug mode is on)
 # Usage: printd "Debug text" [text_color] [glyph] [ICO_color]
+# Returns: 0 on success, 2 on invalid usage
 printd() {
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     # Check for is_debug function or ZSH_DEBUG variable
     if (( ${+functions[is_debug]} )) && is_debug || [[ $ZSH_DEBUG == 1 ]]; then
         local text="$1"
@@ -108,8 +97,9 @@ printd() {
 
 # Print a key-value pair
 # Usage: printkv "Key" "Value" [key_color] [value_color]
+# Returns: 0 on success, 2 on invalid usage
 printkv() {
-    (( ARGC >= 2 )) || return 1
+    (( ARGC >= 2 && ARGC <= 4 )) || return 2
     local key="$1"
     local val="$2"
     local kc="${3:-$b}" # Blue default
@@ -120,8 +110,9 @@ printkv() {
 
 # Print all elements of an array (associative or indexed)
 # Usage: printa array_name [key_color] [value_color]
+# Returns: 0 on success, 1 if not an array, 2 on invalid usage
 printa() {
-    (( ARGC >= 1 )) || return 1
+    (( ARGC >= 1 && ARGC <= 3 )) || return 2
     local arr_name="$1"
     local kc="${2:-$b}"
     local vc="${3:-$x}"
@@ -152,16 +143,18 @@ printa() {
 
 # Print arguments in columns (like ls)
 # Usage: printcol "Item 1" "Item 2" "Item 3"...
+# Returns: 0 on success, 2 on invalid usage
 printcol() {
-    (( ARGC >= 1 )) || return 1
+    (( ARGC >= 1 )) || return 2
     # -c: print in columns sorted vertically (auto-width based on terminal size)
     print -c -- "$@"
 }
 
 # Print unordered list
 # Usage: printul "Item 1" "Item 2"...
+# Returns: 0 on success, 2 on invalid usage
 printul() {
-    (( ARGC >= 1 )) || return 1
+    (( ARGC >= 1 )) || return 2
     local item
     local bullet="•" 
     
@@ -172,7 +165,9 @@ printul() {
 
 # Print colored text (simple wrapper)
 # Usage: printc "Text" [color]
+# Returns: 0 on success, 2 on invalid usage
 printc() {
+    (( ARGC >= 1 && ARGC <= 2 )) || return 2
     local text="$1"
     local color="${2:-$x}"
     print -- "${color}${text}${x}"
@@ -181,9 +176,10 @@ printc() {
 # --- Interactive ---
 
 # Ask user for input with default value
-# Usage: printq "Enter name" "DefaultName"
-# Returns: The user input or default
+# Usage: printq "Enter name" [default_value]
+# Returns: 0 on success (prints user input or default), 2 on invalid usage
 printq() {
+    (( ARGC >= 1 && ARGC <= 2 )) || return 2
     local prompt_text="$1"
     local default_val="$2"
     local input
@@ -200,8 +196,9 @@ printq() {
 
 # Ask user a yes/no question
 # Usage: yesno "Do you want to proceed?"
-# Returns: 0 (true) for Yes, 1 (false) for No
+# Returns: 0 (true) for Yes, 1 (false) for No, 2 on invalid usage
 yesno() {
+    (( ARGC == 1 )) || return 2
     local prompt_text="$1"
     # -q: read single char, y/Y returns 0, n/N returns 1
     # ?...: prompt string
@@ -219,7 +216,9 @@ yesno() {
 # Print a separator line
 # Usage: printl [color] [char] [width]
 # Example: printl $r "=" 50%
+# Returns: 0 on success, 2 on invalid usage
 printl() {
+    (( ARGC <= 3 )) || return 2
     local color="${1:-$x}"
     local char="${2:-─}"
     local width_arg="${3:-100%}"
@@ -245,8 +244,9 @@ printl() {
 
 # Print a header with an underline
 # Usage: printh "Text" [text_color] [line_color] [line_char]
+# Returns: 0 on success, 2 on invalid usage
 printh() {
-    (( ARGC >= 1 )) || return 1
+    (( ARGC >= 1 && ARGC <= 4 )) || return 2
     local text="$1"
     local tc="${2:-$x}"
     local lc="${3:-$x}"
@@ -258,8 +258,9 @@ printh() {
 
 # Print text surrounded by a border
 # Usage: printt "Text" [text_color] [border_color]
+# Returns: 0 on success, 2 on invalid usage
 printt() {
-    (( ARGC >= 1 )) || return 1
+    (( ARGC >= 1 && ARGC <= 3 )) || return 2
     local text="$1"
     local ct="${2:-$x}"
     local cb="${3:-$x}"

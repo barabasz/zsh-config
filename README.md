@@ -12,6 +12,7 @@ For installation instructions, see [INSTALL.md](docs/INSTALL.md).
 | [GUIDELINES.md](docs/GUIDELINES.md) | Development guidelines |
 | [NAMING.md](docs/NAMING.md) | Naming conventions |
 | [ZSH.md](docs/ZSH.md) | Zsh coding style |
+| [BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Best Practices, Do's and Don'ts |
 | [ZFILES.md](docs/ZFILES.md) | File tracking system |
 | [EXAMPLES.md](docs/EXAMPLES.md) | Examples & use cases |
 | [FUNCTIONS.md](docs/FUNCTIONS.md) | List of functions |
@@ -151,6 +152,7 @@ Autoloaded functions available on-demand. No function declaration needed in file
 | Function | Description |
 |----------|-------------|
 | `zhelp` | Display helpful commands and documentation |
+| `zdoc` | Browse and view documentation files |
 | `zman` | List all zsh-config functions with filtering |
 | `zinfo` | Display help information for a specific function |
 | `zconfig` | Edit zsh config files using the default editor |

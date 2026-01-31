@@ -127,26 +127,29 @@ slugify() {
 # --- Inspection ---
 
 # Check if string contains substring
-# Usage: str_contains "hello world" "world"
+# Usage: str_contains haystack needle
+# Example: str_contains "hello world" "world"
 # Returns: 0 (true) or 1 (false)
 str_contains() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     [[ "$1" == *"$2"* ]]
 }
 
 # Check if string starts with prefix
-# Usage: str_starts_with "hello world" "hello"
+# Usage: str_starts_with text prefix
+# Example: str_starts_with "hello world" "hello"
 # Returns: 0 (true) or 1 (false)
 str_starts_with() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     [[ "$1" == "$2"* ]]
 }
 
 # Check if string ends with suffix
-# Usage: str_ends_with "hello world" "world"
+# Usage: str_ends_with text suffix
+# Example: str_ends_with "hello world" "world"
 # Returns: 0 (true) or 1 (false)
 str_ends_with() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     [[ "$1" == *"$2" ]]
 }
 
@@ -154,7 +157,7 @@ str_ends_with() {
 # Usage: str_length "hello"
 # Returns: 5
 str_length() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     print -- ${#1}
 }
 
@@ -162,7 +165,7 @@ str_length() {
 # Usage: str_count "hello world" "l"
 # Returns: 3
 str_count() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     local str=$1
     local sub=$2
     # Replace substring with empty, subtract lengths
@@ -175,78 +178,117 @@ str_count() {
 # Usage: str_repeat "-" 10
 # Returns: "----------"
 str_repeat() {
-    (( ARGC == 2 )) || return 1
-    local str="$1"
+    (( ARGC == 2 )) || return 2 # Invalid usage
+    local str=$1
     local count=$2
-
-    (( count > 0 )) || return 1
-    
-    # Optimization: If string is 1 char, use Zsh padding expansion (extremely fast)
-    if (( ${#str} == 1 )); then
-        print -- "${(l:count::${str}:):-}"
-    else
-        # For multi-char strings, use repeat loop (faster than for loop)
-        repeat $count print -n -- "$str"
-        print "" # Newline at the end
-    fi
+    (( count > 0 )) || return 2 # Non-positive count
+    repeat $count print -n -- "$str"
+    print  # Newline at the end
 }
 
 # Pad string to length
-# Usage: str_pad "text" 10 [char] [left|right|center]
-# Usage: str_pad "Hello" 10 "-" "center" -> "--Hello---"
+# Usage: str_pad <text> <len> [char] [left|right|center]
+# Example: str_pad "Hello" 10 "-" "left" -> "-----Hello"
+# Default char is space, default side is right
 str_pad() {
-    (( ARGC >= 2 )) || return 1
+    (( ARGC >= 2 )) || return 2
     local str="$1"
     local len=$2
     local char="${3:- }"
-    local align="${4:-left}"
+    local side="${4:-right}"
+    local pad_len=$(( len - ${#str} ))
 
-    case "$align" in
-        left)   print -- "${(r:len::${char}:)str}" ;;  # Right-pad (align left)
-        right)  print -- "${(l:len::${char}:)str}" ;;  # Left-pad (align right)
-        center) 
-            local pad=$(( (len - ${#str}) / 2 ))
-            local left="${(l:pad::${char}:):-}"
-            local right="${(l:pad::${char}:):-}"
-            # Adjust if odd
-            (( (len - ${#str}) % 2 != 0 )) && right+="$char"
-            print -- "${left}${str}${right}" 
+    # No padding needed
+    (( pad_len <= 0 )) && { print -- "$str"; return 0; }
+
+    # Build padding string
+    local padding=""
+    repeat $pad_len padding+="$char"
+
+    case "$side" in
+        left)   print -- "${padding}${str}" ;;
+        right)  print -- "${str}${padding}" ;;
+        center)
+            local left_pad=$(( pad_len / 2 ))
+            local right_pad=$(( pad_len - left_pad ))
+            print -- "${padding:0:$left_pad}${str}${padding:0:$right_pad}"
             ;;
     esac
+}
+
+# Pad string on the left side
+# Usage: str_pad_left "text" 10 [char]
+# Example: str_pad_left "Hi" 10 "-" -> "--------Hi"
+str_pad_left() {
+    (( ARGC >= 2 )) && (( ARGC <= 3 )) || return 2
+    str_pad "$1" "$2" "${3:- }" left
+}
+
+# Pad string on the right side
+# Usage: str_pad_right "text" 10 [char]
+# Example: str_pad_right "Hi" 10 "-" -> "Hi--------"
+str_pad_right() {
+    (( ARGC >= 2 )) && (( ARGC <= 3 )) || return 2
+    str_pad "$1" "$2" "${3:- }" right
+}
+
+# Pad string on both sides (center)
+# Usage: str_pad_center "text" 10 [char]
+# Example: str_pad_center "Hi" 10 "-" -> "----Hi----"
+str_pad_center() {
+    (( ARGC >= 2 )) && (( ARGC <= 3 )) || return 2
+    str_pad "$1" "$2" "${3:- }" center
 }
 
 # Reverse string
 # Usage: str_reverse "hello"
 # Returns: "olleh"
 str_reverse() {
-    (( ARGC == 1 )) || return 1
-    # Zsh magic: split (s::), reverse order (Oa), join (j::)
-    print -- "${(j::)${(Oa)${(s::)1}}}"
+    (( ARGC == 1 )) || return 2
+    local i result=""
+    for (( i=${#1}; i>=1; i-- )); do
+        result+="${1[i]}"
+    done
+    print -r -- "$result"
 }
 
 # Split string by delimiter into array
-# Usage: str_split "a:b:c" ":" arr
-# Sets array variable arr=(a b c)
+# Usage: str_split <string> <delimiter> <array_name>
+# It handles multi-character delimiters
+# Example: str_split "a:b:c" ":" arr -> arr=(a b c)
+# Example: str_split "Ala, ma, kota" ", " arr -> arr=(Ala ma kota)
 str_split() {
-    (( ARGC == 3 )) || return 1
+    (( ARGC == 3 )) || return 2
     local str="$1"
     local delim="$2"
     local arr_name="$3"
+    local -a result=()
 
-    # (@s[$delim]) splits the string based on delimiter
-    set -A $arr_name "${(@s[$delim])str}"
+    # Handle multi-char delimiters with loop
+    while [[ "$str" == *"$delim"* ]]; do
+        result+=("${str%%$delim*}")
+        str="${str#*$delim}"
+    done
+    result+=("$str")
+
+    set -A $arr_name "${result[@]}"
 }
 
 # Join array elements with delimiter
-# Usage: str_join ":" arr
-# Returns: "a:b:c" (where arr=(a b c))
+# Usage: str_join <delimiter> <array_name>
+# Example: str_join ":" arr -> "a:b:c" (where arr=(a b c))
 str_join() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2
     local delim="$1"
     local arr_name="$2"
+    local -a arr=("${(@P)arr_name}")
+    local result="" i
 
-    # ${(P)arr_name} dereferences array content
-    print -- "${(j[$delim])${(P)arr_name}}"
+    for (( i=1; i<=${#arr}; i++ )); do
+        (( i > 1 )) && result+="$delim"
+        result+="${arr[i]}"
+    done
+    print -r -- "$result"
 }
 
 # Replace first occurrence of pattern with replacement

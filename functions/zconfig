@@ -14,7 +14,7 @@ _zconfig_help() {
     print "${c}Config files:${x}"
     print "  ${g}-a, --aliases${x}    inc/aliases.zsh"
     print "  ${g}-C, --colors${x}     inc/colors.zsh"
-    print "  ${g}-c, --config${x}     .zconfig"
+    print "  ${g}-c, --config${x}     env.zsh"
     print "  ${g}-e, --env${x}        .zshenv"
     print "  ${g}-H, --history${x}    inc/history.zsh"
     print "  ${g}-i, --icons${x}      inc/icons.zsh"
@@ -57,7 +57,7 @@ zparseopts -D -A opts \
 local opt_count=0
 (( ${+opts[-a]} || ${+opts[--aliases]} )) && { target="$zsh_dir/inc/aliases.zsh"; (( opt_count++ )); }
 (( ${+opts[-C]} || ${+opts[--colors]} ))  && { target="$zsh_dir/inc/colors.zsh"; (( opt_count++ )); }
-(( ${+opts[-c]} || ${+opts[--config]} ))  && { target="$zsh_dir/.zconfig"; (( opt_count++ )); }
+(( ${+opts[-c]} || ${+opts[--config]} ))  && { target="$zsh_dir/env.zsh"; (( opt_count++ )); }
 (( ${+opts[-e]} || ${+opts[--env]} ))     && { target="$zsh_dir/.zshenv"; (( opt_count++ )); }
 (( ${+opts[-H]} || ${+opts[--history]} )) && { target="$zsh_dir/inc/history.zsh"; (( opt_count++ )); }
 (( ${+opts[-i]} || ${+opts[--icons]} ))   && { target="$zsh_dir/inc/icons.zsh"; (( opt_count++ )); }

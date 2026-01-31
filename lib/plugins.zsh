@@ -17,10 +17,11 @@ typeset -gA ZPLUGINS_LOADED
 
 # Compile all .zsh files in a plugin directory
 # Usage: compile_plugin <name>
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 compile_plugin() {
     (( ARGC == 1 )) || {
         printe "Usage: compile_plugin <name>"
-        return 1
+        return 2
     }
     local name=$1
     local target=$ZSH_PLUGINS_DIR/$name

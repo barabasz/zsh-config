@@ -1,0 +1,160 @@
+# Display zsh-config documentation files
+# Usage: zdoc [filename] [-h|--help]
+
+local -A opts
+local zsh_dir="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
+
+# ============================================================================
+# DOCUMENTATION FILES - easy to extend
+# Format: "filename:description"
+# ============================================================================
+local -a docs=(
+    "README.md:Main documentation file"
+    "docs/STRUCTURE.md:Directory structure overview"
+    "docs/INSTALL.md:Installation instructions"
+    "docs/EXAMPLES.md:Examples and use cases"
+    "docs/FUNCTIONS.md:List of all functions"
+    "docs/GUIDELINES.md:Development guidelines"
+    "docs/NAMING.md:Naming conventions"
+    "docs/ZSH.md:Zsh coding style"
+    "docs/ZFILES.md:File tracking documentation"
+)
+# ============================================================================
+
+# Show help
+_zdoc_help() {
+    print "${y}zdoc${x} - display zsh-config documentation"
+    print ""
+    print "${c}Usage:${x}"
+    print "  ${g}zdoc${x}              Interactive file selection"
+    print "  ${g}zdoc${x} ${c}<name>${x}       Open file matching name"
+    print "  ${g}zdoc${x} ${c}-h|--help${x}   Show this help"
+    print ""
+    print "${c}Examples:${x}"
+    print "  zdoc              Show file list and select"
+    print "  zdoc readme       Open README.md"
+    print "  zdoc struct       Open docs/STRUCTURE.md"
+    print "  zdoc 1            Open first file in list"
+}
+
+# Display file using glow or fallback
+_zdoc_display() {
+    local file="$1"
+    local width=$(terminal_columns)
+    local max=${ZDOC_MAX_WIDTH:-120}
+    local min=${ZDOC_MIN_WIDTH:-60}
+
+    # Clamp width to min/max
+    (( width > max )) && width=$max
+    (( width < min )) && width=$min
+
+    if (( ${+commands[glow]} )); then
+        # Ensure pager supports colors
+        export PAGER='less -r'
+        glow -p -w "$width" "$file"
+    elif (( ${+commands[brew]} )); then
+        print "${y}Installing glow for better markdown rendering...${x}"
+        brew install glow && {
+            export PAGER='less -r'
+            glow -p -w "$width" "$file"
+        }
+    else
+        print "${y}Note: Install 'glow' for better markdown rendering${x}"
+        print ""
+        cat "$file"
+    fi
+}
+
+# Find matching file (case-insensitive prefix match)
+_zdoc_find() {
+    local query="${1:l}"  # lowercase
+    local entry file name
+
+    for entry in "${docs[@]}"; do
+        file="${entry%%:*}"
+        name="${file##*/}"      # basename
+        name="${name%.md}"      # remove .md
+        name="${name:l}"        # lowercase
+
+        # Match if query is prefix of name
+        if [[ "$name" == "$query"* ]]; then
+            print "$file"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Parse options
+zparseopts -D -A opts h -help
+
+if (( ${+opts[-h]} || ${+opts[--help]} )); then
+    _zdoc_help
+    return 0
+fi
+
+# If argument provided, find and display file
+if (( ARGC >= 1 )); then
+    local arg="$1"
+    local found=""
+
+    # Check if it's a number
+    if [[ "$arg" =~ ^[0-9]+$ ]] && (( arg >= 1 && arg <= ${#docs} )); then
+        found="${docs[arg]%%:*}"
+    else
+        found="$(_zdoc_find "$arg")"
+    fi
+
+    if [[ -n "$found" ]]; then
+        local full_path="$zsh_dir/$found"
+        if [[ -f "$full_path" ]]; then
+            _zdoc_display "$full_path"
+            return 0
+        else
+            printe "Error: file not found: $full_path"
+            return 1
+        fi
+    else
+        printe "Error: no documentation matching '$arg'"
+        printe "Run 'zdoc' to see available files"
+        return 1
+    fi
+fi
+
+# Interactive mode - show file list
+print "${y}Zsh-config documentation.${x} Select file to view:"
+print ""
+
+local i=1
+local entry file desc
+for entry in "${docs[@]}"; do
+    file="${entry%%:*}"
+    desc="${entry#*:}"
+    printf "  ${y}%d.${x} ${g}%-22s${x} %s\n" "$i" "${file##*/}" "$desc"
+    (( i++ ))
+done
+
+print ""
+printf "Type file number ${y}[1-${#docs}]${x} to open, or ${y}q${x} to quit: "
+
+local choice
+read -r choice
+
+# Handle quit
+[[ "$choice" == "q" || "$choice" == "Q" || -z "$choice" ]] && return 0
+
+# Validate choice
+if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#docs} )); then
+    local selected="${docs[choice]%%:*}"
+    local full_path="$zsh_dir/$selected"
+
+    if [[ -f "$full_path" ]]; then
+        _zdoc_display "$full_path"
+    else
+        printe "Error: file not found: $full_path"
+        return 1
+    fi
+else
+    printe "Invalid selection"
+    return 1
+fi

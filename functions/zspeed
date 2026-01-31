@@ -1,0 +1,63 @@
+# Measure zsh startup performance
+# Usage: zspeed
+# Returns: prints times to stdout
+# Returns error code 2 on invalid usage
+
+(( ARGC == 0 )) || {
+    printe "${g}zspeed$x takes no arguments."
+    return 2
+}
+
+# Ensure zsh/datetime is available for high-precision timing
+zmodload zsh/datetime
+
+# Map modes to their respective startup files
+local -A file_map=(
+    "Baseline"                  "none (no-rcs mode)"
+    "Non-Interactive"           ".zshenv"
+    "Non-Interactive Login"     ".zshenv  .zprofile          .zlogin"
+    "Interactive Non-Login"     ".zshenv             .zshrc"
+    "Interactive Login"         ".zshenv  .zprofile  .zshrc  .zlogin"
+)
+
+# Define flags for each mode
+local -A flag_map=(
+    "Baseline"                  "-f"
+    "Non-Interactive"           ""
+    "Non-Interactive Login"     "-l"
+    "Interactive Non-Login"     "-i"
+    "Interactive Login"         "-i -l"
+)
+
+# Execution order
+local -a order=(
+    "Baseline"
+    "Non-Interactive"
+    "Non-Interactive Login"
+    "Interactive Non-Login"
+    "Interactive Login"
+)
+
+# Warm-up: Run a baseline instance to fill disk cache
+command zsh -f -c exit
+
+print "\n${y}Zsh startup performance analysis$x\n"
+
+printf "${g}%-25s  %s      %s$x\n" "mode" "time" "files sourced"
+printl $g "" 72
+
+local mode start_time end_time total_ms
+for mode in $order; do
+    # Use 'command zsh' to bypass aliases and ensure direct binary execution
+    start_time=$EPOCHREALTIME
+    command zsh ${=flag_map[$mode]} -c exit
+    end_time=$EPOCHREALTIME
+    
+    total_ms=$(( (end_time - start_time) * 1000 ))
+    
+    # Format: Mode (22 chars), Time (8.3 float), Files in brackets
+    printf "%-22s ${y}%8.3f$x ms   ${c}%s$x\n" "$mode" $total_ms "${file_map[$mode]}"
+done
+
+print
+return 0

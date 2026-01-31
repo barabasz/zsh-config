@@ -55,12 +55,16 @@ export ZSH_SYS_INFO=${ZSH_SYS_INFO:-0}        # set to 1 to print system info me
 # Editors and pager
 export EDITOR='nvim'
 export VISUAL='code'
-export PAGER='less'
+export PAGER='less -r'
 
 # Logging configuration
 export LOG_SHOW_ICONS=1  # log.sh: 1 for icons, 0 for nothing
 export LOG_COLOR_TEXTS=1 # log.sh: 1 for colors, 0 for white
 export LOG_EMOJI_ICONS=0 # log.sh: 1 for emoji, 0 for text
+
+# zdoc configuration
+export ZDOC_MAX_WIDTH=120  # max line width for zdoc viewer
+export ZDOC_MIN_WIDTH=60   # min line width for zdoc viewer
 
 # Execs
 export EXECS_SPINNER_FRAMES=('⣷' '⣯' '⣟' '⡿' '⢿' '⣻' '⣽' '⣾')

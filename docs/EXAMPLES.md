@@ -1,6 +1,7 @@
 # zsh-config: Examples & Use Cases
 
-Part of [zsh-config](../README.md) documentation. Code examples and common patterns.
+This is a part of [zsh-config](../README.md) documentation. 
+Code examples and common patterns.
 
 ## OS-Specific Configuration
 

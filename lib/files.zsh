@@ -8,66 +8,75 @@ zfile_track_start ${0:A}
 
 # Check if path exists and is a regular file
 # Usage: is_file "/path/to/file"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_file() {
-    (( ARGC == 1 )) && [[ -f $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -f $1 ]]
 }
 
 # Check if path exists and is a directory
 # Usage: is_dir "/path/to/dir"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_dir() {
-    (( ARGC == 1 )) && [[ -d $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -d $1 ]]
 }
 functions[is_folder]=$functions[is_dir]
 
 # Check if path exists and is a symbolic link
 # Usage: is_link "/path/to/symlink"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_link() {
-    (( ARGC == 1 )) && [[ -L $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -L $1 ]]
 }
 functions[is_symlink]=$functions[is_link]
 
 # Check if file is a hard link (has link count > 1)
 # Uses built-in zstat with array storage to avoid subshells
 # Usage: is_hardlink "/path/to/file"
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_hardlink() {
-    (( ARGC == 1 )) && [[ -f $1 ]] || return 1
-    
+    (( ARGC == 1 )) || return 2
+    [[ -f $1 ]] || return 1
+
     local -a stats
     # -A: load into array, +nlink: get hardlink count
-    zstat -A stats +nlink "$1" 2>/dev/null
-    
+    zstat -A stats +nlink "$1" 2>/dev/null || return 1
+
     (( stats[1] > 1 ))
 }
 
 # Check if file is executable
 # Usage: is_executable "/path/to/file"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_executable() {
-    (( ARGC == 1 )) && [[ -x $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -x $1 ]]
 }
 
 # Check if file/dir is writable
 # Usage: is_writable "/path/to/file"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_writable() {
-    (( ARGC == 1 )) && [[ -w $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -w $1 ]]
 }
 
 # Check if file/dir is readable
 # Usage: is_readable "/path/to/file"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_readable() {
-    (( ARGC == 1 )) && [[ -r $1 ]]
+    (( ARGC == 1 )) || return 2
+    [[ -r $1 ]]
 }
 
 # Check if directory is empty
 # Usage: is_empty_dir "/path/to/dir"
-# Returns: 0 (true) or 1 (false)
+# Returns: 0 (true), 1 (false), 2 (invalid usage)
 is_empty_dir() {
-    (( ARGC == 1 )) && [[ -d $1 ]] || return 1
+    (( ARGC == 1 )) || return 2
+    [[ -d $1 ]] || return 1
     # Check if there is at least one file inside
     # Uses Zsh glob qualifiers: D (dotfiles), N (nullglob), [1] (stop after 1 match)
     # This is extremely fast as it stops scanning immediately upon finding anything
@@ -81,7 +90,8 @@ is_empty_dir() {
 # Usage: get_file_size "file.txt"
 # Returns: file size in bytes (e.g., 1024)
 get_file_size() {
-    (( ARGC == 1 )) && [[ -f $1 ]] || return 1
+    (( ARGC == 1 )) || return 2
+    [[ -f $1 ]] || return 1
     local -a stats
     zstat -A stats +size "$1" 2>/dev/null && print -- $stats[1]
 }
@@ -90,16 +100,19 @@ get_file_size() {
 # Usage: get_file_mode "file.txt"
 # Returns: 644, 755, etc.
 get_file_mode() {
-    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
-    local -a stats
-    zstat -A stats +mode "$1" 2>/dev/null && print -- $stats[1]
+    (( ARGC == 1 )) || return 2
+    [[ -e $1 ]] || return 1
+    local mode
+    # -o flag outputs octal format (0100644), extract last 3 digits
+    zstat -o -A mode +mode "$1" 2>/dev/null && print -- ${mode[1]: -3}
 }
 
 # Get file owner name
 # Usage: get_file_owner "file.txt"
 # Returns: user name
 get_file_owner() {
-    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
+    (( ARGC == 1 )) || return 2
+    [[ -e $1 ]] || return 1
     local -a stats
     # +uid is numeric, but we want name. zstat doesn't resolve names by default easily via +flags alone
     # in pure zstat without external 'id' command, sticking to ls -ld or zstat +uid is safer.
@@ -112,7 +125,8 @@ get_file_owner() {
 # Usage: resolve_link "symlink"
 # Returns: target path
 resolve_link() {
-    (( ARGC == 1 )) && [[ -L $1 ]] || return 1
+    (( ARGC == 1 )) || return 2
+    [[ -L $1 ]] || return 1
     local -a stats
     zstat -A stats +link "$1" 2>/dev/null && print -- $stats[1]
 }
@@ -121,7 +135,8 @@ resolve_link() {
 # Usage: get_file_mtime "file.txt"
 # Returns: modification time in seconds since epoch
 get_file_mtime() {
-    (( ARGC == 1 )) && [[ -e $1 ]] || return 1
+    (( ARGC == 1 )) || return 2
+    [[ -e $1 ]] || return 1
     local -a stats
     zstat -A stats +mtime "$1" 2>/dev/null && print -- $stats[1]
 }
@@ -134,7 +149,7 @@ get_file_mtime() {
 # Usage: get_filename "/path/to/file.txt" -> "file.txt"
 # Returns: filename
 get_filename() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     print -- "${1:t}"
 }
 
@@ -142,7 +157,7 @@ get_filename() {
 # Usage: get_dirname "/path/to/file.txt" -> "/path/to"
 # Returns: directory path
 get_dirname() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     print -- "${1:h}"
 }
 
@@ -150,7 +165,7 @@ get_dirname() {
 # Usage: get_extension "image.jpg" -> "jpg"
 # Returns: extension
 get_extension() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     print -- "${1:e}"
 }
 
@@ -158,7 +173,7 @@ get_extension() {
 # Usage: get_filename_no_ext "image.jpg" -> "image"
 # Returns: filename without extension
 get_filename_no_ext() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     print -- "${1:t:r}"
 }
 
@@ -196,11 +211,11 @@ count_dirs() {
 
 # Create a file and its parent directories if they don't exist
 # Usage: mkfile "path/to/deep/file.txt"
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 mkfile() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     local dir=${1:h}
-    [[ -d $dir ]] || mkdir -p "$dir"
+    [[ -d $dir ]] || mkdir -p "$dir" || return 1
     touch "$1"
 }
 
@@ -208,18 +223,23 @@ mkfile() {
 # Usage: format_size 12345678
 # Returns: 11.77 MB
 format_size() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     local bytes=$1
     local -a units=(B KB MB GB TB PB)
     local i=1
     local -F size=$bytes
 
-    while (( size > 1024 && i < 6 )); do
+    while (( size >= 1024 && i < 6 )); do
         (( size /= 1024.0 ))
         (( i++ ))
     done
 
-    printf "%.2f %s\n" $size $units[$i]
+    # No decimals for bytes, 2 decimals for larger units
+    if (( i == 1 )); then
+        LC_NUMERIC=C printf "%.0f %s\n" $size $units[$i]
+    else
+        LC_NUMERIC=C printf "%.2f %s\n" $size $units[$i]
+    fi
 }
 
 # Shell files tracking - keep at the end

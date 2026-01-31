@@ -87,8 +87,13 @@ functions[cv]=$functions[clip_paste]     # generic shorthand
 
 # Copy the absolute path of a file or directory to clipboard
 # Usage: copypath [file_or_dir] (defaults to current dir)
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 copypath() {
+    if (( ARGC > 1 )); then
+        printi "Usage: copypath [file_or_dir]"
+        print "Defaults to current directory if no argument is given."
+        return 2
+    fi
     # Default to current directory if no argument
     local file="${1:-.}"
 
@@ -111,11 +116,11 @@ copypath() {
 
 # Copy the contents of a file to clipboard
 # Usage: copyfile file.txt
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 copyfile() {
     if (( ARGC != 1 )); then
         printi "Usage: copyfile <file>"
-        return 1
+        return 2
     fi
 
     local file="$1"

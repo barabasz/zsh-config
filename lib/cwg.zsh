@@ -33,7 +33,10 @@ cwg_seed() {
 # Core function returning a raw random number
 # Usage: cwg_next
 # Optimized for speed: No argument parsing, just math.
+# Returns a pseudo-random number in REPLY.
+# Returns error code 2 on invalid usage
 cwg_next() {
+    (( ARGC == 0 )) || return 2 # Invalid usage
     (( _cwg_w += _cwg_inc ))
     if (( _cwg_x % 2 == 0 )); then
         (( _cwg_x >>= 1 ))

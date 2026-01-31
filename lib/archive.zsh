@@ -6,9 +6,9 @@ zfile_track_start ${0:A}
 
 # Extract any archive format based on extension
 # Usage: extract archive.tar.gz
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 extract() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2 # Invalid usage
     local file="$1"
 
     if [[ ! -f "$file" ]]; then
@@ -41,9 +41,9 @@ extract() {
 
 # Compress a file or directory into a .tar.gz (uses pigz if available)
 # Usage: compress target_name source_file_or_dir
-# Returns: 0 on success
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 compress() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     local target="$1"
     local source="$2"
 
@@ -51,14 +51,15 @@ compress() {
     [[ "$target" != *.tar.gz ]] && target="${target}.tar.gz"
 
     if [[ -e "$source" ]]; then
-        # Optimization: Use pigz for parallel compression if available
-        local prog="gzip"
-        (( ${+commands[pigz]} )) && prog="pigz"
-
         # Use -C to change directory to parent to avoid absolute paths in archive
-        tar -I "$prog" -cf "$target" -C "${source:h}" "${source:t}"
-        
-        prints "Compressed '${source:t}' to '$target' using $prog"
+        # Use pigz for parallel compression if available (via pipe for bsdtar compat)
+        if (( ${+commands[pigz]} )); then
+            tar cf - -C "${source:h}" "${source:t}" | pigz > "$target"
+            prints "Compressed '${source:t}' to '$target' using pigz"
+        else
+            tar -czf "$target" -C "${source:h}" "${source:t}"
+            prints "Compressed '${source:t}' to '$target' using gzip"
+        fi
     else
         printe "Source '$source' does not exist"
         return 1
@@ -67,9 +68,9 @@ compress() {
 
 # Create a zip archive of a folder (ignoring common junk)
 # Usage: zip_folder archive_name source_folder
-# Returns: 0 on success
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 zip_folder() {
-    (( ARGC == 2 )) || return 1
+    (( ARGC == 2 )) || return 2 # Invalid usage
     local target="$1"
     local source="$2"
 

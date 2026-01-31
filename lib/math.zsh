@@ -68,13 +68,13 @@ avgf() {
     (( ARGC >= 1 )) || return 1
     local total=0
     local num
-    
+
     for num in $argv; do
         (( total += num ))
     done
-    
+
     # Force float context by multiplying by 1.0
-    printf "%.2f\n" $(( total * 1.0 / ARGC ))
+    LC_NUMERIC=C printf "%.2f\n" $(( total * 1.0 / ARGC ))
 }
 
 # Get absolute value
@@ -98,11 +98,16 @@ pow() {
 
 # Calculate square root
 # Usage: sqrt 16
-# Returns: 4.0
+# Returns: 4
 sqrt() {
     (( ARGC == 1 )) || return 1
-    # Uses zsh/mathfunc
-    print -- $(( sqrt($1) ))
+    # Uses zsh/mathfunc, format as integer if whole number
+    local result=$(( sqrt($1) ))
+    if (( result == int(result) )); then
+        print -- $(( int(result) ))
+    else
+        LC_NUMERIC=C printf "%.6f\n" $result
+    fi
 }
 
 # Generate random number between min and max (inclusive)
@@ -284,7 +289,7 @@ clamp() {
 # Returns: float
 percent() {
     (( ARGC == 2 )) || return 1
-    printf "%.2f\n" $(( $1 * 100.0 / $2 ))
+    LC_NUMERIC=C printf "%.2f\n" $(( $1 * 100.0 / $2 ))
 }
 
 # --- Base Conversions ---
@@ -294,7 +299,7 @@ percent() {
 # Returns: string
 dec2hex() {
     (( ARGC == 1 )) || return 1
-    print -- $(( [#16] $1 ))
+    printf "0x%X\n" $1
 }
 
 # Convert Hexadecimal to Decimal
@@ -306,11 +311,13 @@ hex2dec() {
 }
 
 # Convert Decimal to Binary
-# Usage: dec2bin 10 -> 2#1010
+# Usage: dec2bin 10 -> 0b1010
 # Returns: string
 dec2bin() {
     (( ARGC == 1 )) || return 1
-    print -- $(( [#2] $1 ))
+    local result=$(( [#2] $1 ))
+    # Convert 2#1010 to 0b1010
+    print -- "0b${result#2#}"
 }
 
 # --- Trigonometry / Geometry ---
@@ -320,7 +327,7 @@ dec2bin() {
 # Returns: float
 deg2rad() {
     (( ARGC == 1 )) || return 1
-    printf "%.8f\n" $(( $1 * (4 * atan(1.0)) / 180.0 ))
+    LC_NUMERIC=C printf "%.8f\n" $(( $1 * (4 * atan(1.0)) / 180.0 ))
 }
 
 # Convert radians to degrees
@@ -328,7 +335,7 @@ deg2rad() {
 # Returns: float
 rad2deg() {
     (( ARGC == 1 )) || return 1
-    printf "%.8f\n" $(( $1 * 180.0 / (4 * atan(1.0)) ))
+    LC_NUMERIC=C printf "%.8f\n" $(( $1 * 180.0 / (4 * atan(1.0)) ))
 }
 
 # Calculate fibonacci number at position n
@@ -372,9 +379,9 @@ format_bytes() {
     done
 
     if (( i == 1 )); then
-        printf "%.0f %s" $bytes $units[$i]
+        LC_NUMERIC=C printf "%.0f %s\n" $bytes $units[$i]
     else
-        printf "%.2f %s" $bytes $units[$i]
+        LC_NUMERIC=C printf "%.2f %s\n" $bytes $units[$i]
     fi
 }
 
@@ -392,7 +399,7 @@ format_metric() {
         (( i++ ))
     done
 
-    printf "%.2f %s\n" $val $units[$i]
+    LC_NUMERIC=C printf "%.2f %s\n" $val $units[$i]
 }
 
 # Shell files tracking - keep at the end

@@ -11,9 +11,9 @@ zfile_track_start ${0:A}
 
 # Check if a .zsh file needs (re)compilation
 # Usage: needs_compile <file.zsh>
-# Returns: 0 if needs compile, 1 if up-to-date
+# Returns: 0 if needs compile, 1 if up-to-date, 2 on invalid usage
 needs_compile() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     local src=$1 zwc=$1.zwc
 
     # No .zwc exists → needs compile
@@ -30,9 +30,9 @@ needs_compile() {
 
 # Compile a single .zsh file
 # Usage: compile_file <file.zsh>
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 compile_file() {
-    (( ARGC == 1 )) || return 1
+    (( ARGC == 1 )) || return 2
     [[ -f $1 && $1 == *.zsh ]] || return 1
     zcompile "$1" 2>/dev/null
 }
@@ -43,11 +43,11 @@ compile_file() {
 
 # Compile all .zsh files in a directory
 # Usage: compile_dir <dir> [quiet]
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 compile_dir() {
     (( ARGC >= 1 && ARGC <= 2 )) || {
         print -u2 "Usage: compile_dir <dir> [quiet]"
-        return 1
+        return 2
     }
     local dir=$1
     local quiet=${2:-0} # default to 0 (not quiet), if 1 suppress output
@@ -77,11 +77,11 @@ compile_dir() {
 
 # Remove all .zwc files from a directory
 # Usage: clean_dir <dir>
-# Returns: 0 on success, 1 on failure
+# Returns: 0 on success, 1 on failure, 2 on invalid usage
 clean_dir() {
     (( ARGC == 1 )) || {
         print -u2 "Usage: clean_dir <dir>"
-        return 1
+        return 2
     }
     local dir=$1
     local -a zwc_files

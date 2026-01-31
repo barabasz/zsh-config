@@ -11,7 +11,9 @@ zfile_track_start ${0:A}
 # Get system architecture (Normalized)
 # Usage: get_cpu_arch
 # Returns: "arm64", "x64", "x86"
+# Returns error code 2 on invalid usage
 get_cpu_arch() {
+    (( ARGC == 0 )) || return 2
     local arch=${CPUTYPE:-$(uname -m)}
     case $arch in
         x86_64|amd64) print "x64" ;;
@@ -24,7 +26,9 @@ get_cpu_arch() {
 # Get CPU Model Name
 # Usage: get_cpu_model
 # Returns: "Apple M1 Pro", "Intel(R) Core(TM) i7...", etc.
+# Returns error code 2 on invalid usage
 get_cpu_model() {
+    (( ARGC == 0 )) || return 2
     if is_macos; then
         sysctl -n machdep.cpu.brand_string
     elif is_linux; then
@@ -44,7 +48,9 @@ get_cpu_model() {
 # Get Number of CPU Cores
 # Usage: get_cpu_count
 # Returns: integer (e.g. 8)
+# Returns error code 2 on invalid usage
 get_cpu_count() {
+    (( ARGC == 0 )) || return 2
     if is_macos; then
         sysctl -n hw.ncpu
     elif is_linux; then
@@ -61,7 +67,9 @@ get_cpu_count() {
 # Get Total RAM in Bytes
 # Usage: get_ram_total
 # Returns: integer (e.g. 17179869184)
+# Returns error code 2 on invalid usage
 get_ram_total() {
+    (( ARGC == 0 )) || return 2
     local total_bytes=0
     
     if is_macos; then
@@ -78,7 +86,9 @@ get_ram_total() {
 # Get Used RAM in Bytes (Approximation)
 # Usage: get_ram_used
 # Returns: integer
+# Returns error code 2 on invalid usage
 get_ram_used() {
+    (( ARGC == 0 )) || return 2
     local used_bytes=0
 
     if is_macos; then
@@ -106,7 +116,9 @@ get_ram_used() {
 # Get Available/Free RAM in Bytes
 # Usage: get_ram_free
 # Returns: integer
+# Returns error code 2 on invalid usage
 get_ram_free() {
+    (( ARGC == 0 )) || return 2
     local free_bytes=0
 
     if is_macos; then
@@ -135,7 +147,9 @@ get_ram_free() {
 # Get Total Disk Size
 # Usage: get_disk_total [/path/to/mount]
 # Returns: integer
+# Returns error code 2 on invalid usage
 get_disk_total() {
+    (( ARGC <= 1 )) || return 2
     local target_path="${1:-.}"
 
     local output
@@ -152,7 +166,9 @@ get_disk_total() {
 # Get Used Disk Space
 # Usage: get_disk_used [/path/to/mount]
 # Returns: integer
+# Returns error code 2 on invalid usage
 get_disk_used() {
+    (( ARGC <= 1 )) || return 2
     local target_path="${1:-.}"
 
     local output
@@ -169,7 +185,9 @@ get_disk_used() {
 # Get Free/Available Disk Space
 # Usage: get_disk_free [/path/to/mount]
 # Returns: integer
+# Returns error code 2 on invalid usage
 get_disk_free() {
+    (( ARGC <= 1 )) || return 2
     local target_path="${1:-.}"
 
     local output

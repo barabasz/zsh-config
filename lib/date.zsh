@@ -405,11 +405,11 @@ format_time() {
     local -F val=$1
 
     if (( val < 0.001 )); then
-        printf "%.0f μs" $(( val * 1000000 ))
+        LC_NUMERIC=C printf "%.0f μs" $(( val * 1000000 ))
     elif (( val < 1 )); then
-        printf "%.1f ms" $(( val * 1000 ))
+        LC_NUMERIC=C printf "%.1f ms" $(( val * 1000 ))
     else
-        printf "%.2f s" $val
+        LC_NUMERIC=C printf "%.2f s" $val
     fi
 }
 
@@ -425,9 +425,9 @@ format_duration() {
         print -- "${sec} sec"
     elif (( sec < 3600 )); then
         # Use printf for float precision
-        printf "%.1f min\n" $(( sec / 60.0 ))
+        LC_NUMERIC=C printf "%.1f min\n" $(( sec / 60.0 ))
     elif (( sec < 86400 )); then
-        printf "%.1f h\n" $(( sec / 3600.0 ))
+        LC_NUMERIC=C printf "%.1f h\n" $(( sec / 3600.0 ))
     else
         d=$(( sec / 86400 ))
         h=$(( (sec % 86400) / 3600 ))

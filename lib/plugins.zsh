@@ -290,27 +290,54 @@ load_plugin() {
 }
 
 # Load a plugin by name directly (without wrapper)
-# Usage: load_plugin_direct <name> <repo>
+# Usage: load_plugin_directly <name> <repo>
 load_plugin_directly() {
     (( ARGC == 2 )) || {
-        printe "Usage: load_plugin_direct <name> <repo>"
+        printe "Usage: load_plugin_directly <name> <repo>"
         return 1
     }
     local name=$1
     local repo=$2
     local target=$ZSH_PLUGINS_DIR/$name
 
+    # Already loaded?
+    (( ${+ZPLUGINS_LOADED[$name]} )) && return 0
+
+    # Not installed - try auto-install if enabled
+    if [[ ! -d $target ]]; then
+        if [[ ${ZSH_PLUGINS_AUTOINSTALL:-0} == 1 ]]; then
+            install_plugin "$name" "$repo" || return 1
+        else
+            printe "Plugin '$name' not installed"
+            printi "Run: install_plugin $name $repo"
+            return 1
+        fi
+    fi
+
     find_plugin_file "$target" || {
         printe "Cannot find main file for plugin '$name'"
         return 1
     }
 
+    local main_file=$REPLY
+
+    # Compile if needed
+    compile_plugin "$name"
+
     # zfile tracking start
-    zfile_track_start $REPLY
-    # actual loading
-    load_plugin "$name" "$repo"
+    zfile_track_start $main_file
+
+    # Source the plugin
+    source "$main_file" || {
+        printe "Failed to source $main_file"
+        zfile_track_end $main_file
+        return 1
+    }
+
+    ZPLUGINS_LOADED[$name]=$main_file
+
     # zfile tracking end
-    zfile_track_end $REPLY
+    zfile_track_end $main_file
 }
 
 # Load a plugin wrapper file

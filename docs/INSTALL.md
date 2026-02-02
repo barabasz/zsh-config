@@ -1,14 +1,34 @@
 # zconfig: Installation Instructions
 
-This is a part of [zconfig](../README.md) documentation. 
-Instructions for installing and setting up the zsh configuration. 
+Part of [zconfig](../README.md) documentation.
 
 ## Requirements
 
-- Zsh version 5.8 or higher
-- Git installed on your system
+- **Operating system:** macOS or Debian-based Linux (Debian, Ubuntu, Mint, etc.)
+- **Zsh:** version 5.8 or higher
+- **Git:** installed on your system
 
-## Installation
+## Quick Install (Recommended)
+
+Run this single command:
+
+```bash
+source <(curl -fsSL https://raw.githubusercontent.com/barabasz/zconfig/main/install.zsh)
+```
+
+The installer will:
+- Check system requirements
+- Install zsh if needed (Linux only)
+- Clone the repository to `~/.config/zsh`
+- Create symlink `~/.zshenv`
+- Optionally install Homebrew
+- Set zsh as your default shell
+
+If you have an existing zsh configuration, the installer will offer to back it up.
+
+## Manual Installation
+
+If you prefer to install manually:
 
 1. **Clone** the repository:
 
@@ -22,24 +42,53 @@ Instructions for installing and setting up the zsh configuration.
    ln -s ~/.config/zsh/.zshenv ~/.zshenv
    ```
 
-3. **Set** zsh as your default shell:
+3. **Set** zsh as your default shell (if not already):
 
    ```zsh
    chsh -s $(which zsh)
    ```
 
-4. **Restart** your terminal to apply changes.
+4. **Restart** your terminal or run:
 
    ```zsh
    exec zsh
    ```
 
-   This may take a llittle while for the first time, since zconfig will automatically download and install all the required plugins and compile some zsh files info zwc for faster loading.
+   The first startup may take a moment as zconfig will automatically download plugins and compile files for faster loading.
 
-5. **Use help** to get started:
+5. **Explore** with the help command:
 
    ```zsh
-   help
+   zhelp
    ```
 
-Enjoy better shell experience with zconfig! 🎉
+## Updating
+
+To update zconfig and all plugins:
+
+```zsh
+zupdate
+```
+
+Or update only specific components:
+
+```zsh
+zupdate -c    # Update only zconfig repository
+zupdate -p    # Update only plugins
+zupdate -s    # Update system packages (brew/apt)
+```
+
+## Uninstalling
+
+To remove zconfig:
+
+```zsh
+rm ~/.zshenv
+rm -rf ~/.config/zsh
+```
+
+Then set your shell back to bash (if desired):
+
+```zsh
+chsh -s /bin/bash
+```

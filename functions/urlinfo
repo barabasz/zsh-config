@@ -1,33 +1,43 @@
-# uURL information tool (zsh port of PHP version)
 # Query URL and display detailed connection, SSL, and timing information
-#
-# Usage: urlinfo [options] URL
-#
-# Options:
-#   -b  show response body (only for unencoded text/plain content)
-#   -c  print verbose cURL info
-#   -f  ignore SSL certificate errors
-#   -H  print help and exit
-#   -h  print verbose response headers (without cookies and CSP)
-#   -i  print verbose ipinfo response
-#   -m  mute standard output (only show errors)
-#   -p  force plain text content response
-#   -t  show script execution time
-#   -v  print version and exit
-#
-# Environment:
-#   IPINFO_TOKEN - API token for ipinfo.io (optional)
-#
-# Example:
-#   urlinfo example.com
-#   urlinfo -t -b https://api.example.com/status
-#
-# Return codes:
-#   0 - success
-#   1 - invalid arguments, curl error, or invalid URL
+# Use 'urlinfo --help' for more information.
+
+local -A _fn=(
+    [info]="Query URL and display detailed connection, SSL, and timing information"
+    [desc]="Fetches a URL and displays comprehensive information including HTTP status,
+            IP geolocation, SSL certificate details, response headers, and timing metrics."
+    [version]="1.0.7"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+    [notes]="Requires curl. For IP geolocation, optionally set IPINFO_TOKEN environment variable."
+)
+
+local -a _fn_args=(
+    "url|URL to query (https:// assumed if no scheme)|r"
+)
+
+local -a _fn_opts=(
+    "body|b|Show response body (only for unencoded content)"
+    "curl|c|Print verbose cURL info"
+    "insecure|f|Ignore SSL certificate errors"
+    "headers|H|Print verbose response headers"
+    "ipinfo|i|Print verbose ipinfo response"
+    "mute|m|Mute standard output (only show errors)"
+    "plain|p|Force plain text content response"
+    "time|t|Show script execution time"
+)
+
+local -a _fn_examples=(
+    "urlinfo example.com"
+    "urlinfo -t -b https://api.example.com/status"
+    "urlinfo -H -c https://google.com|Show headers and curl info"
+)
+
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
 
 # --- Constants ---
-local -r VERSION="1.0.6-zsh"
 local -r USER_AGENT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
 local -r DEFAULT_SCHEME="https"
 local -r DATE_FMT="%Y-%m-%d %H:%M %Z"
@@ -36,15 +46,12 @@ local -r DATE_FMT="%Y-%m-%d %H:%M %Z"
 
 # Extract value from JSON (simple key-value)
 _urlinfo_json_val() {
-    local json=$1 key=$2
-    local val
-
+    local json=$1 key=$2 val
     if [[ $json =~ \"$key\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]; then
         val=$match[1]
     elif [[ $json =~ \"$key\"[[:space:]]*:[[:space:]]*([^,\}[:space:]]+) ]]; then
         val=$match[1]
     fi
-
     print -r -- $val
 }
 
@@ -78,9 +85,7 @@ _urlinfo_status_text() {
 
 # Format date string to standard format
 _urlinfo_fmt_date() {
-    local input=$1
-    # Try to parse with date command
-    local formatted
+    local input=$1 formatted
     formatted=$(date -j -f "%b %d %H:%M:%S %Y %Z" "$input" "+$DATE_FMT" 2>/dev/null) ||
     formatted=$(date -j -f "%a, %d %b %Y %H:%M:%S %Z" "$input" "+$DATE_FMT" 2>/dev/null) ||
     formatted=$input
@@ -89,64 +94,25 @@ _urlinfo_fmt_date() {
 
 # --- Main Logic ---
 
-# Parse options
-local -A opts
-zparseopts -D -E -A opts b c f H h i m p t v
-
-# Version
-if (( ${+opts[-v]} )); then
-    print "URLInfo version $VERSION"
-    return 0
-fi
-
-# Help
-if (( ${+opts[-H]} )); then
-    print "Usage: urlinfo [options] URL"
-    print ""
-    print "Options:"
-    print "  -b  show response body (only for unencoded content)"
-    print "  -c  print verbose cURL info"
-    print "  -f  ignore SSL certificate errors"
-    print "  -H  print this help and exit"
-    print "  -h  print verbose response headers"
-    print "  -i  print verbose ipinfo response"
-    print "  -m  mute standard output"
-    print "  -p  force plain text content response"
-    print "  -t  show script execution time"
-    print "  -v  print version and exit"
-    return 0
-fi
-
-# Check arguments
-if (( ARGC == 0 )); then
-    printe "No URL specified. Use -H for help."
-    return 1
-fi
-
-if (( ARGC > 1 )); then
-    printe "Too many arguments. Use -H for help."
-    return 1
-fi
-
 # Check if curl is available
 if ! is_installed curl; then
     printe "curl not found"
     return 1
 fi
 
-local url=$1
+local url="${args[url]}"
 local -F start_time=$EPOCHREALTIME
 
 # URL normalization (add https:// if no scheme provided)
 [[ $url != *://* ]] && url="${DEFAULT_SCHEME}://${url}"
 
-# URL validation (using is_url_valid from lib/network.zsh)
+# URL validation
 if ! is_url_valid "$url"; then
     printe "Invalid URL format."
     return 1
 fi
 
-# Check scheme (urlinfo only supports http/https, not ftp)
+# Check scheme (only http/https supported)
 local scheme=${url%%://*}
 if [[ $scheme != http && $scheme != https ]]; then
     printe "Only http:// and https:// schemes are supported."
@@ -157,15 +123,13 @@ fi
 local tmp_dir=$(mktemp -d)
 local hdr_file="$tmp_dir/headers"
 local body_file="$tmp_dir/body"
-local ssl_file="$tmp_dir/ssl"
-
 trap "rm -rf $tmp_dir" EXIT
 
 # Hide cursor and show progress
 echotc vi 2>/dev/null
 printf "${by}⏳${x} Fetching ${b}%s${x}..." "$url"
 
-# Setup curl arguments (no -v, cleaner output)
+# Setup curl arguments
 local -a curl_args=(
     -s -L
     -A "$USER_AGENT"
@@ -175,9 +139,9 @@ local -a curl_args=(
     --max-time 30
 )
 
-(( ${+opts[-f]} )) && curl_args+=(-k)
+(( ${+opts[insecure]} )) && curl_args+=(-k)
 
-if (( ${+opts[-p]} )); then
+if (( ${+opts[plain]} )); then
     curl_args+=(-H "Accept-Encoding: identity")
 else
     curl_args+=(-H "Accept-Encoding: br, gzip, deflate")
@@ -199,7 +163,6 @@ printf "\r\033[K"
 
 if (( curl_status != 0 )); then
     echotc ve 2>/dev/null
-    # Human-readable curl error messages
     local curl_error
     case $curl_status in
         6)  curl_error="Could not resolve host - domain does not exist or DNS failure" ;;
@@ -244,13 +207,11 @@ local ssl_subject="" ssl_issuer="" ssl_start="" ssl_expire=""
 if [[ $scheme == HTTPS ]]; then
     printf "${by}⏳${x} Fetching SSL info..."
 
-    # Get SSL info with separate curl call using -v
     local ssl_output
-    ssl_output=$(curl -s -v --head --connect-timeout 3 ${${+opts[-f]}:+-k} "$url_effective" 2>&1)
+    ssl_output=$(curl -s -v --head --connect-timeout 3 ${${+opts[insecure]}:+-k} "$url_effective" 2>&1)
 
     printf "\r\033[K"
 
-    # Parse SSL info line by line
     local ssl_line
     for ssl_line in "${(@f)ssl_output}"; do
         if [[ $ssl_line == *"subject:"* ]]; then
@@ -273,7 +234,7 @@ fi
 echotc ve 2>/dev/null
 
 # Mute mode - exit early
-if (( ${+opts[-m]} )); then
+if (( ${+opts[mute]} )); then
     return $(( http_code >= 400 ))
 fi
 
@@ -290,7 +251,7 @@ for hdr_line in "${(@f)$(< $hdr_file)}"; do
 done
 
 # Verbose curl info
-if (( ${+opts[-c]} )); then
+if (( ${+opts[curl]} )); then
     printh "cURL info"
     print "HTTP code:       $http_code"
     print "Effective URL:   $url_effective"
@@ -312,7 +273,7 @@ if (( ${+opts[-c]} )); then
 fi
 
 # Verbose headers
-if (( ${+opts[-h]} )); then
+if (( ${+opts[headers]} )); then
     printh "Response headers"
     local hdr
     for hdr in ${(ko)headers}; do
@@ -348,7 +309,7 @@ if [[ -n $remote_ip ]]; then
 fi
 
 # Verbose ipinfo
-if (( ${+opts[-i]} )) && [[ -n $ip_json ]]; then
+if (( ${+opts[ipinfo]} )) && [[ -n $ip_json ]]; then
     printh "IP info response"
     print -r -- "$ip_json"
     print ""
@@ -446,7 +407,7 @@ if [[ -n $headers[content-encoding] ]]; then
     print " encoded with ${y}$headers[content-encoding]${x} $enc_desc"
 else
     print -n " as ${y}plain text${x}"
-    (( ${+opts[-p]} )) && print -n " (${r}forced${x})"
+    (( ${+opts[plain]} )) && print -n " (${r}forced${x})"
     print ""
 fi
 
@@ -469,7 +430,7 @@ fi
 print "Transfer:\ttime to first byte ${y}$(format_time $t_ttfb)${x} transfer time ${y}$(format_time $t_trans)${x} total time ${y}$(format_time $t_total)${x}"
 
 # Body content
-if (( ${+opts[-b]} )); then
+if (( ${+opts[body]} )); then
     print ""
     printh "Body content"
     if [[ -n $headers[content-encoding] ]]; then
@@ -483,7 +444,7 @@ if (( ${+opts[-b]} )); then
 fi
 
 # Script execution time
-if (( ${+opts[-t]} )); then
+if (( ${+opts[time]} )); then
     local -F elapsed=$(( EPOCHREALTIME - start_time ))
     print ""
     print "Script time:\t${c}$(format_time $elapsed)${x}"

@@ -1,65 +1,39 @@
 # Measure zsh startup performance
-# Usage: zspeed [-c|--cycles <n>] [-i|--info] [-h|--help] [-v|--version]
-# Options:
-#   -c, --cycles <n>  Number of measurement cycles (default: 4)
-#   -i, --info        Show extended info (files sourced, total time)
-#   -h, --help        Show this help message
-#   -v, --version     Show version
-# Returns: prints times to stdout
-# Returns error code 2 on invalid usage
-#
-# Performs measurement runs (alternating forward/reverse order) to minimize
-# cache effects, then displays the average time for each mode.
+# Use 'zspeed --help' for more information.
 
-local _zspeed_version="0.1.2"
+local -A _fn=(
+    [info]="Measure zsh startup performance across different shell modes"
+    [desc]="Performs measurement runs (alternating forward/reverse order) to minimize
+            cache effects, then displays the average, min, and max time for each mode."
+    [version]="0.5.0"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+    [notes]="Modes tested:
+            - Baseline: zsh -f (no config files)
+            - Non-Interactive: .zshenv only
+            - Non-Interactive Login: .zshenv, .zprofile, .zlogin
+            - Interactive Non-Login: .zshenv, .zshrc
+            - Interactive Login: .zshenv, .zprofile, .zshrc, .zlogin"
+)
 
-local -a cycles_opt help_opt version_opt info_opt
-zparseopts -D -E -F c:=cycles_opt -cycles:=cycles_opt h=help_opt -help=help_opt \
-    v=version_opt -version=version_opt i=info_opt -info=info_opt 2>/dev/null || {
-    printe "Usage: ${g}zspeed$x [-c|--cycles <n>] [-i|--info] [-h|--help] [-v|--version]"
-    return 2
-}
+local -a _fn_opts=(
+    "cycles|c|Number of measurement cycles|n|integer[1;100]"
+    "extended|e|Show extended info (files sourced, total time)"
+)
 
-local cycles=4
-local show_info=0
-local usage="Usage: ${g}zspeed$x [-c|--cycles <n>] [-i|--info] [-h|--help] [-v|--version]
+local -a _fn_examples=(
+    "zspeed|Run with 4 cycles (default)"
+    "zspeed -c 8|Run with 8 cycles for higher precision"
+    "zspeed -i|Show extended info with files sourced"
+)
 
-Measure zsh startup performance across different shell modes.
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
 
-${y}Options:$x
-  ${c}-c, --cycles <n>$x  Number of measurement cycles (default: 4)
-  ${c}-i, --info$x        Show extended info (files sourced, total time)
-  ${c}-h, --help$x        Show this help message
-  ${c}-v, --version$x     Show version
-
-${y}Modes tested:$x
-  Baseline              zsh -f (no config files)
-  Non-Interactive       .zshenv only
-  Non-Interactive Login .zshenv, .zprofile, .zlogin
-  Interactive Non-Login .zshenv, .zshrc
-  Interactive Login     .zshenv, .zprofile, .zshrc, .zlogin
-
-${y}Examples:$x
-  zspeed          Run with 4 cycles (default)
-  zspeed -c 8     Run with 8 cycles for higher precision
-  zspeed -i       Show extended info with files sourced"
-
-(( ${#help_opt} )) && { print "$usage"; return 0 }
-(( ${#version_opt} )) && { print "zspeed $_zspeed_version"; return 0 }
-(( ${#info_opt} )) && show_info=1
-
-if (( ${#cycles_opt} )); then
-    cycles="${cycles_opt[-1]}"
-    [[ "$cycles" =~ ^[0-9]+$ ]] && (( cycles >= 1 )) || {
-        printe "Invalid cycles value: $cycles (must be a positive integer)"
-        return 2
-    }
-fi
-
-(( ARGC == 0 )) || {
-    printe "Usage: ${g}zspeed$x [-c|--cycles <n>] [-i|--info] [-h|--help] [-v|--version]"
-    return 2
-}
+local cycles=${opts[cycles]:-4}
+local show_info=$(( ${+opts[extended]} ))
 
 ## Configuration
 
@@ -129,11 +103,9 @@ while IFS=: read -r mode_key time_val; do
     (( totals[$mode_key] += time_val ))
     (( counts[$mode_key]++ ))
     (( total_time += time_val ))
-    # Track min
     if (( ! ${+mins[$mode_key]} )) || (( time_val < mins[$mode_key] )); then
         mins[$mode_key]=$time_val
     fi
-    # Track max
     if (( ! ${+maxs[$mode_key]} )) || (( time_val > maxs[$mode_key] )); then
         maxs[$mode_key]=$time_val
     fi
@@ -170,4 +142,3 @@ done
 
 print
 (( show_info )) && printf "Total time taken (%d cycles): ${y}%.3f$x ms\n\n" $cycles $total_time
-return 0

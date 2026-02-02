@@ -1,12 +1,17 @@
 # Test function for lib/fn.zsh library
-# Usage: fntest [options] [input] [output]
+# Use 'fntest --help' for more information.
 
 local -A _fn=(
     [info]="Test function demonstrating fn.zsh library"
     [desc]="fntest function. This function is intended to showcase how to use the
             fn.zsh library for parsing command-line options and arguments in Zsh scripts."
-    [version]="0.1.0"
+    [version]="0.2.0"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
     [author]="Andrzej Barabasz"
+    [notes]="This is a test function and does not perform any real operations.
+           It simply demonstrates the usage of the fn.zsh library."
 )
 
 local -a _fn_args=(

@@ -1,8 +1,30 @@
 # Display zsh-config documentation files
-# Usage: zdoc [filename] [-h|--help]
+# Use 'zdoc --help' for more information.
 
-local -A opts
-local zsh_dir="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
+local -A _fn=(
+    [info]="Display zsh-config documentation"
+    [desc]="View markdown documentation files from the zsh-config repository.
+            Supports interactive file selection or direct access by name/number."
+    [version]="0.4.0"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+)
+
+local -a _fn_args=(
+    "file|File name, number, or prefix to match|o"
+)
+
+local -a _fn_examples=(
+    "zdoc|Interactive file selection"
+    "zdoc readme|Open README.md"
+    "zdoc struct|Open docs/STRUCTURE.md (prefix match)"
+    "zdoc 1|Open first file in list"
+)
+
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
 
 # ============================================================================
 # DOCUMENTATION FILES - easy to extend
@@ -18,24 +40,10 @@ local -a docs=(
     "docs/NAMING.md:Naming conventions"
     "docs/ZSH.md:Zsh coding style"
     "docs/ZFILES.md:File tracking documentation"
+    "docs/FN.md:Function library documentation"
 )
-# ============================================================================
 
-# Show help
-_zdoc_help() {
-    print "${y}zdoc${x} - display zsh-config documentation"
-    print ""
-    print "${c}Usage:${x}"
-    print "  ${g}zdoc${x}              Interactive file selection"
-    print "  ${g}zdoc${x} ${c}<name>${x}       Open file matching name"
-    print "  ${g}zdoc${x} ${c}-h|--help${x}   Show this help"
-    print ""
-    print "${c}Examples:${x}"
-    print "  zdoc              Show file list and select"
-    print "  zdoc readme       Open README.md"
-    print "  zdoc struct       Open docs/STRUCTURE.md"
-    print "  zdoc 1            Open first file in list"
-}
+local zsh_dir="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
 
 # Display file using glow or fallback
 _zdoc_display() {
@@ -44,61 +52,37 @@ _zdoc_display() {
     local max=${ZDOC_MAX_WIDTH:-120}
     local min=${ZDOC_MIN_WIDTH:-60}
 
-    # Clamp width to min/max
     (( width > max )) && width=$max
     (( width < min )) && width=$min
 
     if (( ${+commands[glow]} )); then
-        # Ensure pager supports colors
-        export PAGER='less -r'
-        glow -p -w "$width" "$file"
+        PAGER='less -r' glow -p -w "$width" "$file"
     elif (( ${+commands[brew]} )); then
         print "${y}Installing glow for better markdown rendering...${x}"
-        brew install glow && {
-            export PAGER='less -r'
-            glow -p -w "$width" "$file"
-        }
+        brew install glow && PAGER='less -r' glow -p -w "$width" "$file"
     else
-        print "${y}Note: Install 'glow' for better markdown rendering${x}"
-        print ""
+        print "${y}Note: Install 'glow' for better markdown rendering${x}\n"
         cat "$file"
     fi
 }
 
 # Find matching file (case-insensitive prefix match)
 _zdoc_find() {
-    local query="${1:l}"  # lowercase
+    local query="${1:l}"
     local entry file name
-
     for entry in "${docs[@]}"; do
         file="${entry%%:*}"
-        name="${file##*/}"      # basename
-        name="${name%.md}"      # remove .md
-        name="${name:l}"        # lowercase
-
-        # Match if query is prefix of name
-        if [[ "$name" == "$query"* ]]; then
-            print "$file"
-            return 0
-        fi
+        name="${${file##*/}%.md}"
+        [[ "${name:l}" == "$query"* ]] && { print "$file"; return 0; }
     done
     return 1
 }
 
-# Parse options
-zparseopts -D -A opts h -help
-
-if (( ${+opts[-h]} || ${+opts[--help]} )); then
-    _zdoc_help
-    return 0
-fi
-
 # If argument provided, find and display file
-if (( ARGC >= 1 )); then
-    local arg="$1"
+if [[ -n "${args[file]}" ]]; then
+    local arg="${args[file]}"
     local found=""
 
-    # Check if it's a number
     if [[ "$arg" =~ ^[0-9]+$ ]] && (( arg >= 1 && arg <= ${#docs} )); then
         found="${docs[arg]%%:*}"
     else
@@ -110,51 +94,42 @@ if (( ARGC >= 1 )); then
         if [[ -f "$full_path" ]]; then
             _zdoc_display "$full_path"
             return 0
-        else
-            printe "Error: file not found: $full_path"
-            return 1
         fi
-    else
-        printe "Error: no documentation matching '$arg'"
-        printe "Run 'zdoc' to see available files"
+        printe "File not found: $full_path"
         return 1
     fi
+    printe "No documentation matching '$arg'"
+    printe "Run 'zdoc' to see available files"
+    return 1
 fi
 
 # Interactive mode - show file list
-print "${y}Zsh-config documentation.${x} Select file to view:"
-print ""
+print "${y}Zsh-config documentation.${x} Select file to view:\n"
 
-local i=1
-local entry file desc
+local i=1 entry file desc
 for entry in "${docs[@]}"; do
     file="${entry%%:*}"
     desc="${entry#*:}"
-    printf "  ${y}%d.${x} ${g}%-22s${x} %s\n" "$i" "${file##*/}" "$desc"
+    printf "  ${y}%2d.${x} ${g}%-22s${x} %s\n" "$i" "${file##*/}" "$desc"
     (( i++ ))
 done
 
-print ""
-printf "Type file number ${y}[1-${#docs}]${x} to open, or ${y}q${x} to quit: "
+printf "\nType file number ${y}[1-${#docs}]${x} to open, or ${y}q${x} to quit: "
 
 local choice
 read -r choice
 
-# Handle quit
-[[ "$choice" == "q" || "$choice" == "Q" || -z "$choice" ]] && return 0
+[[ "$choice" == [qQ] || -z "$choice" ]] && return 0
 
-# Validate choice
 if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#docs} )); then
-    local selected="${docs[choice]%%:*}"
-    local full_path="$zsh_dir/$selected"
-
+    local full_path="$zsh_dir/${docs[choice]%%:*}"
     if [[ -f "$full_path" ]]; then
         _zdoc_display "$full_path"
-    else
-        printe "Error: file not found: $full_path"
-        return 1
+        return 0
     fi
-else
-    printe "Invalid selection"
+    printe "File not found: $full_path"
     return 1
 fi
+
+printe "Invalid selection"
+return 1

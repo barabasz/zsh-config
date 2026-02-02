@@ -1,19 +1,28 @@
 # Show loaded shell files in order with status and load time
-# Usage: zfiles
+# Use 'zfiles --help' for more information.
 
-zfiles() {
-  (( ARGC != 0 )) && {
-    printe "zfiles: No positional arguments or options expected"
-    return 1
-  }
+local -A _fn=(
+    [info]="Show loaded shell files with status and load time"
+    [desc]="Displays all sourced shell files in load order, showing their status
+            (success/failure), load time in milliseconds, and source directory.
+            Color-coded by load time: green (<1ms), white (1-5ms), yellow (5-10ms), red (>10ms)."
+    [version]="0.6.5"
+    [created]="2024-06-15"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+    [notes]="Requires ZFILES_ORDER, ZFILES, and ZFILES_TIME arrays populated by zfile_track_start/end."
+)
 
-  local filepath filename fstatus icon time_ms total=0
-  local time_color name_color indent folder
-  local i=0 count=${#ZFILES_ORDER} errors=0
-  local width=${#count}
-  local folder_color
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
 
-  for filepath in $ZFILES_ORDER; do
+local filepath filename fstatus icon time_ms total=0
+local time_color name_color indent folder folder_color
+local i=0 count=${#ZFILES_ORDER} errors=0
+local width=${#count}
+
+for filepath in $ZFILES_ORDER; do
     (( i++ ))
     filename=${filepath:t}
     fstatus=$ZFILES[$filepath]
@@ -21,50 +30,49 @@ zfiles() {
 
     # Status icon
     if (( fstatus == 1 )); then
-      icon="${g}✓${x}"
+        icon="${g}✓${x}"
     else
-      icon="${r}✗${x}"
-      (( errors++ ))
+        icon="${r}✗${x}"
+        (( errors++ ))
     fi
 
     # Time color determination
     local int_time=$(( ${time_ms%.*} ))
-    
+
     if (( int_time > 10 )); then
-      time_color=$r
+        time_color=$r
     elif (( int_time > 5 )); then
-      time_color=$y
+        time_color=$y
     elif (( int_time > 1 )); then
-      time_color=$w
+        time_color=$w
     else
-      time_color=$g
+        time_color=$g
     fi
 
     # Main files vs sourced files
     if [[ $filename == .z* ]]; then
-      name_color=$y
-      indent=""
-      folder="zsh"
-      folder_color=$w
-      total=$(( total + time_ms ))
+        name_color=$y
+        indent=""
+        folder="zsh"
+        folder_color=$w
+        total=$(( total + time_ms ))
     else
-      name_color=$c
-      indent="  "
-      folder="${filepath:h:t}"
-      folder_color=$w
+        name_color=$c
+        indent="  "
+        folder="${filepath:h:t}"
+        folder_color=$w
     fi
 
     # Print line
     printf "${w}%${width}d.${x} %s ${name_color}%-25s${x} ${time_color}%6.2f ms${x}  ${folder_color}%-5s${x}\n" \
-      "$i" "$icon" "${indent}${filename}" "$time_ms" "$folder"
-  done
+        "$i" "$icon" "${indent}${filename}" "$time_ms" "$folder"
+done
 
-  # Footer
-  printf "${by}%32s%6.2f ms  %s$x\n" "" "$total" "total"
+# Footer
+printf "${by}%32s%6.2f ms  %s$x\n" "" "$total" "total"
 
-  # Error reporting
-  if (( errors > 0 )); then
-    print "" # Spacer
+# Error reporting
+if (( errors > 0 )); then
+    print ""
     printe "$errors file(s) failed to load"
-  fi
-}
+fi

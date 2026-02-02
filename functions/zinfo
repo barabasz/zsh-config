@@ -1,36 +1,46 @@
 # Display help information for a function from lib/ or functions/
-# Usage: zinfo <function_name>
+# Use 'zinfo --help' for more information.
 
-(( ${argv[(I)(-h|--help)]} )) && {
-    print "Display help information for a zsh-config function"
-    print "Usage: ${g}zinfo$c <function_name>$x"
-    return 0
-}
+local -A _fn=(
+    [info]="Display help information for a zsh-config function"
+    [desc]="Searches for a function in the functions/ directory or lib/*.zsh files
+            and displays its documentation comments."
+    [version]="0.5.0"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+    [notes]="Extracts raw comments directly from source code. Most useful for helper
+            functions in lib/. For interactive user functions, try running the function
+            with ${p}--help${x} flag instead for formatted documentation."
+)
 
-(( ARGC == 1 )) || {
-    printe "Invalid usage. Provide a function name."
-    printi "Usage: ${g}zinfo$c <function_name>$x"
-    return 2
-}
+local -a _fn_args=(
+    "function|Function name to look up|r"
+)
 
-local func_name="$1"
+local -a _fn_examples=(
+    "zinfo printe|Show help for printe function"
+    "zinfo zfiles|Show help for zfiles function"
+)
+
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
+
+local func_name="${args[function]}"
 local zsh_dir="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}"
 local lib_dir="$zsh_dir/lib"
 local func_dir="$zsh_dir/functions"
 
 # Check if it's a function from /functions directory
 if [[ -f "$func_dir/$func_name" ]]; then
-    # Print header
     print "${g}${func_name}${x} is a function from ${c}/functions/${func_name}${x}"
 
     local line first=1
     while IFS= read -r line; do
-        # Stop at first non-comment or empty line
         [[ "$line" != \#* ]] && break
-        # Print comment without leading # and space
         line="${line#\#}"
         line="${line# }"
-        # First line in yellow
         if (( first )); then
             print -r -- "${y}${line}${x}"
             first=0
@@ -42,19 +52,15 @@ if [[ -f "$func_dir/$func_name" ]]; then
 fi
 
 # Search in /lib directory
-local file found=0
+local file
 local -a comment_block=()
 
 for file in "$lib_dir"/*.zsh(.N); do
     comment_block=()
 
     while IFS= read -r line; do
-        # Check if line defines the function we're looking for
         if [[ "$line" =~ "^${func_name}\\s*\\(\\)" ]]; then
-            found=1
-            # Print header
             print "${g}${func_name}${x} is a helper function from ${c}/lib/${file:t}${x}"
-            # Print collected comments (first line in yellow)
             local first=1
             for cmt in "${comment_block[@]}"; do
                 cmt="${cmt#\#}"
@@ -68,15 +74,12 @@ for file in "$lib_dir"/*.zsh(.N); do
             done
             return 0
         elif [[ "$line" == \#* ]]; then
-            # Accumulate comment lines
             comment_block+=("$line")
         else
-            # Non-comment line resets the block
             comment_block=()
         fi
     done < "$file"
 done
 
-# Function not found
-print -u2 "Function '$func_name' not found"
+printe "Function '$func_name' not found"
 return 1

@@ -1,25 +1,33 @@
 # Update zsh-config and all plugins
-# Usage: zupdate
+# Use 'zupdate --help' for more information.
 
-# Ensure no arguments are provided
-(( ARGC == 0 )) || {
-    printe "zupdate: This command accepts no arguments."
-    return 1
-}
+local -A _fn=(
+    [info]="Update zsh-config and all plugins"
+    [desc]="Pulls the latest changes from the zsh-config repository and updates
+            all installed plugins using git pull --rebase."
+    [version]="0.5.0"
+    [created]="2025"
+    [modified]="2026-02-02"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+)
+
+local -A opts=() args=()
+_fn_init "$@" || return $REPLY
 
 printi "Updating zsh-config..."
 local zdir=${ZDOTDIR:A}
-git -C $zdir pull --rebase 2>&1 
+git -C $zdir pull --rebase 2>&1
 if (( $status != 0 )); then
-    printe "zupdate: Git pull failed for zsh-config."
+    printe "Git pull failed for zsh-config."
 else
-    prints "zupdate: zsh-config updated successfully."
+    prints "zsh-config updated successfully."
 fi
 
 printi "Updating zsh plugins..."
 update_plugins
 if (( $status != 0 )); then
-    printe "zupdate: One or more plugins failed to update."
+    printe "One or more plugins failed to update."
 else
-    prints "zupdate: all plugins updated successfully."
+    prints "All plugins updated successfully."
 fi

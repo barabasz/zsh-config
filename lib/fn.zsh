@@ -4,57 +4,8 @@ zfile_track_start ${0:A}
 
 # Function metadata and argument parsing library
 # Provides standardized help generation, option parsing, argument validation, and type checking.
-#
-# Dependencies: printe (from out.zsh), color variables ($r, $g, $y, $c, $m, $x)
-#
-# Usage example in user function:
-#
-#   local -A _fn=(
-#       [version]="1.0.0"                   # enables -v/--version
-#       [info]="Short info"                 # one-liner shown in help header
-#       [desc]="Full description"           # shown in Description section
-#       [author]="Author Name"              # shown in footer
-#       # [name] is auto-detected from function name
-#   )
-#
-#   local -a _fn_args=(
-#       "input|Input file path"             # name|description (required, string)
-#       "output|Output file|o"              # name|description|o (optional, string)
-#       "count|Number of items|r|integer"   # name|description|r|type (required, typed)
-#   )
-#
-#   local -a _fn_opts=(
-#       "force|f|Force overwrite"           # long|short|description (flag)
-#       "cycles|c|Number of cycles|n"       # long|short|description|arg_name (takes value)
-#       "count|n|Count|n|integer"           # long|short|description|arg_name|type (typed)
-#       "test||Test mode"                   # long||description (no short form)
-#   )
-#
-#   local -a _fn_examples=(
-#       "myfunc input.txt"                          # example only
-#       "myfunc -c 8 input.txt|Process with 8 cycles"  # example|description
-#   )
-#
-#   # Auto-added options (unless already defined):
-#   # -v/--version: added if _fn[version] is set
-#   # -h/--help: added if any of: version, info, desc, opts, args, or examples exist
-#
-#   local -A opts=() args=()
-#   _fn_init "$@" || return $REPLY
-#
-#   # Now available:
-#   # ${opts[cycles]}  - option value (by long name)
-#   # ${args[input]}   - argument value (by name)
-#   # (( ${+opts[force]} )) - check if flag is set
-#
-# Supported types: string, char, digit, integer, float, date, time, datetime, bool, ipv4, ipv6, email, domain, url
-# Ranged types with interval notation (for integer, float, string):
-#   [a;b] = inclusive (a <= x <= b), (a;b) = exclusive (a < x < b)
-#   [a;b) = left-inclusive, (a;b] = right-inclusive
-#   Examples: integer[1;10], float(0;1], string[1;255], string(;100]
-#   For string, range applies to length: string(;20] = non-empty string up to 20 chars
-# URL with schema restrictions: url[http,https] or url[http,https,ftp]
-# Add custom types by extending _FN_TYPES and _FN_TYPE_DESC associative arrays.
+# Dependencies: printe (from print.zsh), color variables ($r, $g, $y, $c, $p, $x)
+# Documentation: docs/FN.md
 
 # Type validation patterns (extensible - add custom types here)
 # Each key is a type name, value is an extended regex pattern
@@ -770,11 +721,55 @@ _fn_usage() {
         done
     fi
 
-    # Footer: version, author, file location
+    # Notes section
+    if [[ -n "${_fn[notes]}" ]]; then
+        _fn_section "Notes"
+        _fn_description "${_fn[notes]}"
+    fi
+
+    # Footer: version, author, dates, license
     print
     local footer=""
-    [[ -n "$version" ]] && footer+="${g}${name}${x} ver. ${c}${version}${x}"
-    [[ -n "$author" ]] && footer+=" by ${c}${author}${x}"
+    local created="${_fn[created]:-}"
+    local modified="${_fn[modified]:-}"
+    local license="${_fn[license]:-}"
+
+    # Version with optional date
+    if [[ -n "$version" ]]; then
+        footer="${g}${name}${x} ver. ${c}${version}${x}"
+        # Date in parentheses: modified or created
+        local date_display="${modified:-$created}"
+        [[ -n "$date_display" ]] && footer+=" (${date_display})"
+    fi
+
+    # Copyright with author
+    if [[ -n "$author" ]]; then
+        local year_created="${created:0:4}"
+        local year_modified="${modified:0:4}"
+        local years=""
+
+        if [[ -n "$year_created" && -n "$year_modified" ]]; then
+            if [[ "$year_created" == "$year_modified" ]]; then
+                years="$year_created"
+            else
+                years="${year_created}-${year_modified}"
+            fi
+        elif [[ -n "$year_created" ]]; then
+            years="$year_created"
+        elif [[ -n "$year_modified" ]]; then
+            years="$year_modified"
+        fi
+
+        if [[ -n "$years" ]]; then
+            footer+=" © ${years} ${c}${author}${x}"
+        else
+            footer+=" © ${c}${author}${x}"
+        fi
+    fi
+
+    # License
+    [[ -n "$license" ]] && footer+=" (license: ${c}${license}${x})"
+
     [[ -n "$footer" ]] && print "$footer"
 
     local file=$(_fn_get_file)
@@ -819,11 +814,12 @@ _fn_init() {
     fi
 
     # Auto-add -v/--version and -h/--help options
-    local _has_version_val=0 _has_info=0 _has_desc=0
+    local _has_version_val=0 _has_info=0 _has_desc=0 _has_notes=0
     local _orig_has_opts=0 _orig_has_args=0 _orig_has_examples=0
     [[ -n "${_fn[version]}" ]] && _has_version_val=1
     [[ -n "${_fn[info]}" ]] && _has_info=1
     [[ -n "${_fn[desc]}" ]] && _has_desc=1
+    [[ -n "${_fn[notes]}" ]] && _has_notes=1
     (( ${+_fn_opts} && ${#_fn_opts} > 0 )) && _orig_has_opts=1
     (( ${+_fn_args} && ${#_fn_args} > 0 )) && _orig_has_args=1
     (( ${+_fn_examples} && ${#_fn_examples} > 0 )) && _orig_has_examples=1
@@ -847,26 +843,40 @@ _fn_init() {
     (( ${+_fn_opts} )) || typeset -ga _fn_opts=()
 
     # Auto-add version option if version is set and no conflict
-    if (( _has_version_val && !_has_v && !_has_version )); then
-        _fn_opts=( "version|v|Show version" "${_fn_opts[@]}" )
+    local _version_has_short=0
+    if (( _has_version_val && !_has_version )); then
+        if (( !_has_v )); then
+            _fn_opts=( "version|v|Show version" "${_fn_opts[@]}" )
+            _version_has_short=1
+        else
+            # -v is taken, add --version only (no short form)
+            _fn_opts=( "version||Show version" "${_fn_opts[@]}" )
+        fi
     fi
 
     # Auto-add help option if there's reason to show help and no conflict
-    local _needs_help=$(( _has_version_val || _has_info || _has_desc || _orig_has_opts || _orig_has_args || _orig_has_examples ))
-    if (( _needs_help && !_has_h && !_has_help )); then
-        _fn_opts=( "help|h|Show this help message" "${_fn_opts[@]}" )
+    local _help_has_short=0
+    local _needs_help=$(( _has_version_val || _has_info || _has_desc || _has_notes || _orig_has_opts || _orig_has_args || _orig_has_examples ))
+    if (( _needs_help && !_has_help )); then
+        if (( !_has_h )); then
+            _fn_opts=( "help|h|Show this help message" "${_fn_opts[@]}" )
+            _help_has_short=1
+        else
+            # -h is taken, add --help only (no short form)
+            _fn_opts=( "help||Show this help message" "${_fn_opts[@]}" )
+        fi
     fi
 
     # Pre-scan for -h/--help and -v/--version (priority over other parsing)
     # This ensures help/version work even if placed after options that expect values
     local _prescan_arg
     for _prescan_arg in "$@"; do
-        if [[ "$_prescan_arg" == "-h" || "$_prescan_arg" == "--help" ]]; then
+        if [[ "$_prescan_arg" == "--help" ]] || { [[ "$_prescan_arg" == "-h" ]] && (( _help_has_short )); }; then
             if _fn_has_help; then
                 _fn_usage >&2
                 REPLY=0; return 1
             fi
-        elif [[ "$_prescan_arg" == "-v" || "$_prescan_arg" == "--version" ]]; then
+        elif [[ "$_prescan_arg" == "--version" ]] || { [[ "$_prescan_arg" == "-v" ]] && (( _version_has_short )); }; then
             if (( _has_version_val )); then
                 _fn_version >&2
                 REPLY=0; return 1

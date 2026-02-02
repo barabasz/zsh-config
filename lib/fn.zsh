@@ -224,9 +224,10 @@ _fn_validate_type() {
     return 0
 }
 
-# _fn_type_error - Print type validation error
-# Usage: _fn_type_error "name" "value" "type" ["option"]
-_fn_type_error() {
+# _fn_type_error_msg - Build type validation error message
+# Usage: _fn_type_error_msg "name" "value" "type" ["option"]
+# Returns: error message via REPLY
+_fn_type_error_msg() {
     local name="$1" value="$2" type="$3" is_option="$4"
     local desc=""
 
@@ -241,9 +242,9 @@ _fn_type_error() {
                 desc="URL"
             fi
             if [[ -n "$is_option" ]]; then
-                printe "Invalid value for --${name}: '${value}' is not ${desc}." >&2
+                REPLY="Invalid value for option ${p}--${name}${x}: '${value}' is not ${desc}."
             else
-                printe "Invalid value for <${name}>: '${value}' is not ${desc}." >&2
+                REPLY="Invalid value for argument ${c}<${name}>${x}: '${value}' is not ${desc}."
             fi
             return
         fi
@@ -289,10 +290,17 @@ _fn_type_error() {
     fi
 
     if [[ -n "$is_option" ]]; then
-        printe "Invalid value for --${name}: '${value}' is not ${desc}." >&2
+        REPLY="Invalid value for option ${p}--${name}${x}: '${value}' is not ${desc}."
     else
-        printe "Invalid value for <${name}>: '${value}' is not ${desc}." >&2
+        REPLY="Invalid value for argument ${c}<${name}>${x}: '${value}' is not ${desc}."
     fi
+}
+
+# _fn_type_error - Print type validation error
+# Usage: _fn_type_error "name" "value" "type" ["option"]
+_fn_type_error() {
+    _fn_type_error_msg "$@"
+    printe "$REPLY" >&2
 }
 
 # _fn_has_args - Check if _fn_args is defined and non-empty
@@ -571,7 +579,7 @@ _fn_usage_line() {
     local name=${_fn[name]}
     local usage="${y}Usage: ${g}${name}${x}"
 
-    _fn_has_opts && usage+=" ${c}[options]${x}"
+    _fn_has_opts && usage+=" ${p}[options]${x}"
 
     if _fn_has_args; then
         local arg_spec
@@ -717,13 +725,13 @@ _fn_usage() {
             fi
             [[ -n "$_opt_arg" ]] && _opt_disp+=" <${_opt_arg}>"
 
-            # Build colored display string
+            # Build colored display string (options purple, arguments cyan)
             if [[ -n "$_opt_short" ]]; then
-                _opt_disp_colored="${c}-${_opt_short}, --${_opt_long}${x}"
+                _opt_disp_colored="${p}-${_opt_short}, --${_opt_long}${x}"
             else
-                _opt_disp_colored="    ${c}--${_opt_long}${x}"
+                _opt_disp_colored="    ${p}--${_opt_long}${x}"
             fi
-            [[ -n "$_opt_arg" ]] && _opt_disp_colored+=" ${p}<${_opt_arg}>${x}"
+            [[ -n "$_opt_arg" ]] && _opt_disp_colored+=" ${c}<${_opt_arg}>${x}"
 
             # Build metadata suffix: [type] for options that take a value
             _opt_meta=""
@@ -849,12 +857,30 @@ _fn_init() {
         _fn_opts=( "help|h|Show this help message" "${_fn_opts[@]}" )
     fi
 
+    # Pre-scan for -h/--help and -v/--version (priority over other parsing)
+    # This ensures help/version work even if placed after options that expect values
+    local _prescan_arg
+    for _prescan_arg in "$@"; do
+        if [[ "$_prescan_arg" == "-h" || "$_prescan_arg" == "--help" ]]; then
+            if _fn_has_help; then
+                _fn_usage >&2
+                REPLY=0; return 1
+            fi
+        elif [[ "$_prescan_arg" == "-v" || "$_prescan_arg" == "--version" ]]; then
+            if (( _has_version_val )); then
+                _fn_version >&2
+                REPLY=0; return 1
+            fi
+        fi
+    done
+
     # Validate definitions before processing
     _fn_validate_args || { REPLY=3; return 3; }
     _fn_validate_opts || { REPLY=3; return 3; }
 
     local -A parsed_opts=()
     local -a remaining_args=()
+    local -a _validation_errors=()  # Collect type validation errors
 
     # Build option info from _fn_opts
     # Format: long|short|description|arg_name|type
@@ -1022,7 +1048,7 @@ _fn_init() {
         fi
     done
 
-    # Validate option types
+    # Validate option types (collect errors, don't return immediately)
     local opt_value opt_type
     for long_part in ${(k)parsed_opts}; do
         # Skip flags (no type validation needed)
@@ -1030,9 +1056,8 @@ _fn_init() {
         opt_value="${parsed_opts[$long_part]}"
         opt_type="${opt_types[$long_part]}"
         if ! _fn_validate_type "$opt_value" "$opt_type"; then
-            _fn_type_error "$long_part" "$opt_value" "$opt_type" "option"
-            _fn_usage_short >&2
-            REPLY=2; return 2
+            _fn_type_error_msg "$long_part" "$opt_value" "$opt_type" "option"
+            _validation_errors+=( "$REPLY" )
         fi
     done
 
@@ -1087,7 +1112,7 @@ _fn_init() {
         REPLY=2; return 2
     fi
 
-    # Validate argument types and build args associative array
+    # Validate argument types and build args associative array (collect errors)
     local -A parsed_args=()
     local -a arg_fields=()
     local arg_idx=1 arg_name arg_value arg_type
@@ -1101,14 +1126,23 @@ _fn_init() {
         arg_value="${remaining_args[$arg_idx]}"
 
         if ! _fn_validate_type "$arg_value" "$arg_type"; then
-            _fn_type_error "$arg_name" "$arg_value" "$arg_type" ""
-            _fn_usage_short >&2
-            REPLY=2; return 2
+            _fn_type_error_msg "$arg_name" "$arg_value" "$arg_type" ""
+            _validation_errors+=( "$REPLY" )
         fi
 
         parsed_args[$arg_name]="$arg_value"
         (( arg_idx++ ))
     done
+
+    # If there were any validation errors, display them all and exit
+    if (( ${#_validation_errors} > 0 )); then
+        local _err
+        for _err in "${_validation_errors[@]}"; do
+            printe "$_err" >&2
+        done
+        _fn_usage_short >&2
+        REPLY=2; return 2
+    fi
 
     # Success - set caller's variables directly
     local k

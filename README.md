@@ -8,14 +8,15 @@ For installation instructions, see [INSTALL.md](docs/INSTALL.md).
 
 | File | Description |
 |------|-------------|
-| [STRUCTURE.md](docs/STRUCTURE.md) | Directory structure |
+| [BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Best practices, do's and don'ts |
+| [EXAMPLES.md](docs/EXAMPLES.md) | Examples and use cases |
+| [FN.md](docs/FN.md) | Function library for building standardized functions |
+| [FUNCTIONS.md](docs/FUNCTIONS.md) | List of all available functions |
 | [GUIDELINES.md](docs/GUIDELINES.md) | Development guidelines |
 | [NAMING.md](docs/NAMING.md) | Naming conventions |
-| [ZSH.md](docs/ZSH.md) | Zsh coding style |
-| [BEST_PRACTICES.md](docs/BEST_PRACTICES.md) | Best Practices, Do's and Don'ts |
+| [STRUCTURE.md](docs/STRUCTURE.md) | Directory structure |
 | [ZFILES.md](docs/ZFILES.md) | File tracking system |
-| [EXAMPLES.md](docs/EXAMPLES.md) | Examples & use cases |
-| [FUNCTIONS.md](docs/FUNCTIONS.md) | List of functions |
+| [ZSH.md](docs/ZSH.md) | Zsh coding style |
 
 ## Key Features
 

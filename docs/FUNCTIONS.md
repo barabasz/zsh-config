@@ -1,6 +1,6 @@
-# zsh-config: List of Functions
+# zconfig: List of Functions
 
-Part of [zsh-config](../README.md) documentation. 
+Part of [zconfig](../README.md) documentation. 
 List of available functions and helper functions with descriptions. 
 
 | function | location | description |
@@ -302,4 +302,4 @@ List of available functions and helper functions with descriptions.
 | zinfo | functions | Display help information for a function from lib/ or functions/ |
 | zip_folder | archive.zsh | Create a zip archive of a folder (ignoring common junk) |
 | zman | functions | List all user functions from lib/ and functions/ directories |
-| zupdate | functions | Update zsh-config and all plugins |
+| zupdate | functions | Update zconfig and all plugins |

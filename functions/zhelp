@@ -1,9 +1,9 @@
-# Display helpful commands and documentation for zsh-config
+# Display helpful commands and documentation for zconfig
 # Use 'zhelp --help' for more information.
 
 local -A _fn=(
-    [info]="Display helpful commands and documentation for zsh-config"
-    [desc]="Shows an overview of useful zsh-config commands, plugin management
+    [info]="Display helpful commands and documentation for zconfig"
+    [desc]="Shows an overview of useful zconfig commands, plugin management
             tools, and documentation resources."
     [version]="0.3.6"
     [created]="2025"
@@ -37,13 +37,13 @@ printt "Zsh-Config Help" $y $g
 # Useful Commands
 _zhelp_header "Useful Commands"
 commands=(
-    "zdoc"       "View zsh-config documentation"
+    "zdoc"       "View zconfig documentation"
     "zconfig"    "Edit zsh config files"
-    "zinfo"      "Display help for zsh-config functions"
+    "zinfo"      "Display help for zconfig functions"
     "zfiles"     "Show loaded shell files with status and load time"
-    "zman"       "List all zsh-config functions"
+    "zman"       "List all zconfig functions"
     "zspeed"     "Measure zsh startup performance"
-    "zupdate"    "Update zsh-config and all plugins"
+    "zupdate"    "Update zconfig and all plugins"
     "zwhere"     "Find where a command is defined"
 )
 _zhelp_print

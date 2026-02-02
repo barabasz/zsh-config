@@ -2,7 +2,7 @@
 # Use 'zinfo --help' for more information.
 
 local -A _fn=(
-    [info]="Display help information for a zsh-config function"
+    [info]="Display help information for a zconfig function"
     [desc]="Searches for a function in the functions/ directory or lib/*.zsh files
             and displays its documentation comments."
     [version]="0.3.5"

@@ -1,6 +1,6 @@
-# zsh-config: Directory Structure
+# zconfig: Directory Structure
 
-Part of [zsh-config](../README.md) documentation.
+Part of [zconfig](../README.md) documentation.
 
 ```
 ~/.config/zsh/
@@ -59,7 +59,7 @@ Part of [zsh-config](../README.md) documentation.
 │   ├── zinfo               # Function help/info
 │   ├── zconfig             # Edit config files
 │   ├── zfiles              # File tracking report
-│   ├── zupdate             # Update zsh-config
+│   ├── zupdate             # Update zconfig
 │   ├── zgit                # Git bulk operations
 │   ├── sysinfo             # System information
 │   ├── logininfo           # Login information

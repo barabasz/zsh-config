@@ -1,6 +1,6 @@
-# zsh-config: Zsh Idiomatic Coding Guidelines
+# zconfig: Zsh Idiomatic Coding Guidelines
 
-Part of [zsh-config](../README.md) documentation. 
+Part of [zconfig](../README.md) documentation. 
 Guidelines for writing idiomatic zsh code (not bash).
 
 ---

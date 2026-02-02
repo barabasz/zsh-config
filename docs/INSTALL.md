@@ -1,6 +1,6 @@
-# zsh-config: Installation Instructions
+# zconfig: Installation Instructions
 
-This is a part of [zsh-config](../README.md) documentation. 
+This is a part of [zconfig](../README.md) documentation. 
 Instructions for installing and setting up the zsh configuration. 
 
 ## Requirements
@@ -13,7 +13,7 @@ Instructions for installing and setting up the zsh configuration.
 1. **Clone** the repository:
 
    ```zsh
-   git clone https://github.com/barabasz/zsh-config.git ~/.config/zsh
+   git clone https://github.com/barabasz/zconfig.git ~/.config/zsh
    ```
 
 2. **Link** the main configuration file:
@@ -34,7 +34,7 @@ Instructions for installing and setting up the zsh configuration.
    exec zsh
    ```
 
-   This may take a llittle while for the first time, since zsh-config will automatically download and install all the required plugins and compile some zsh files info zwc for faster loading.
+   This may take a llittle while for the first time, since zconfig will automatically download and install all the required plugins and compile some zsh files info zwc for faster loading.
 
 5. **Use help** to get started:
 
@@ -42,4 +42,4 @@ Instructions for installing and setting up the zsh configuration.
    help
    ```
 
-Enjoy better shell experience with zsh-config! 🎉
+Enjoy better shell experience with zconfig! 🎉

@@ -1,6 +1,6 @@
-# zsh-config: Examples & Use Cases
+# zconfig: Examples & Use Cases
 
-This is a part of [zsh-config](../README.md) documentation. 
+This is a part of [zconfig](../README.md) documentation. 
 Code examples and common patterns.
 
 ## OS-Specific Configuration

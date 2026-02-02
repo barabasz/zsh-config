@@ -1,6 +1,6 @@
-# zsh-config: Development Guidelines
+# zconfig: Development Guidelines
 
-Part of [zsh-config](../README.md) documentation. Guidelines for contributing to this configuration.
+Part of [zconfig](../README.md) documentation. Guidelines for contributing to this configuration.
 
 See also:
 - [README.md](../README.md) - Architecture overview

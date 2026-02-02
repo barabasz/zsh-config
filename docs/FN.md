@@ -1,6 +1,6 @@
-# zsh-config: Function Library (fn.zsh)
+# zconfig: Function Library (fn.zsh)
 
-Part of [zsh-config](../README.md) documentation.
+Part of [zconfig](../README.md) documentation.
 A comprehensive library for building standardized Zsh functions with automatic help generation, option parsing, argument validation, and type checking.
 
 ## Overview

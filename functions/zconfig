@@ -1,8 +1,8 @@
-# Edit zsh-config file using the default editor
+# Edit zconfig file using the default editor
 # Use 'zconfig --help' for more information.
 
 local -A _fn=(
-    [info]="Edit zsh-config file using the default editor"
+    [info]="Edit zconfig file using the default editor"
     [version]="0.7.5"
     [created]="2025"
     [modified]="2026-02-02"

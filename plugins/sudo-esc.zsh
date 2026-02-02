@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # sudo-esc: adds 'sudo' before the last command after pressing 'Esc Esc' in Zsh
-# https://github.com/barabasz/zsh-config/blob/main/plugins/sudo-esc.zsh
+# https://github.com/barabasz/zconfig/blob/main/plugins/sudo-esc.zsh
 
 sudo-esc() {
     # Ensure standard Zsh behavior inside the widget

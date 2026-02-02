@@ -3,7 +3,7 @@
 
 local -A _fn=(
     [info]="List all user functions from lib/ and functions/ directories"
-    [desc]="Scans the zsh-config lib/ and functions/ directories for function definitions
+    [desc]="Scans the zconfig lib/ and functions/ directories for function definitions
             and displays them with their descriptions. Supports filtering, grouping, and
             markdown export."
     [version]="0.5.0"

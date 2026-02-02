@@ -1,4 +1,4 @@
-# zsh-config
+# zconfig
 
 A modular, performance-optimized zsh configuration focused on maintainability and fast startup times. The configuration is split across specialized directories with clear separation of concerns.
 
@@ -153,11 +153,11 @@ Autoloaded functions available on-demand. No function declaration needed in file
 |----------|-------------|
 | `zhelp` | Display helpful commands and documentation |
 | `zdoc` | Browse and view documentation files |
-| `zman` | List all zsh-config functions with filtering |
+| `zman` | List all zconfig functions with filtering |
 | `zinfo` | Display help information for a specific function |
 | `zconfig` | Edit zsh config files using the default editor |
 | `zfiles` | Show loaded shell files with status and load time |
-| `zupdate` | Update zsh-config and all plugins |
+| `zupdate` | Update zconfig and all plugins |
 | `zgit` | Git wrapper for bulk operations on repositories |
 | `sysinfo` | Display system information summary |
 | `logininfo` | Display login information |

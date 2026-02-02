@@ -1,9 +1,9 @@
-# Display zsh-config documentation files
+# Display zconfig documentation files
 # Use 'zdoc --help' for more information.
 
 local -A _fn=(
-    [info]="Display zsh-config documentation"
-    [desc]="View markdown documentation files from the zsh-config repository.
+    [info]="Display zconfig documentation"
+    [desc]="View markdown documentation files from the zconfig repository.
             Supports interactive file selection or direct access by name/number."
     [version]="0.4.3"
     [created]="2025"

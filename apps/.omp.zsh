@@ -9,10 +9,10 @@ zfile_track_start ${0:A}
 # Guard: Fast check using hash table instead of function call
 (( ${+commands[oh-my-posh]} )) || return
 
-# Define paths
+# Define paths 
 # matches your current config path:
-local omp_config="$CONFDIR/omp/my.omp.json"
-local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+local omp_config="$ZSH_APPS_DIR/omp.json"
+local cache_dir=$ZSH_CACHE_DIR
 local cache_file="$cache_dir/omp_init.zsh"
 local zwc_file="${cache_file}.zwc"
 

@@ -23,7 +23,8 @@ ZCONFIG="${g}zconfig${x}"
 ZCONFIG_REPO="https://github.com/barabasz/zconfig.git"
 ZCONFIG_DIR="$HOME/.config/zsh"
 ZSHENV_LINK="$HOME/.zshenv"
-HOMEBREW_INSTALL="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+URL_HOMEBREW="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+URL_OHMYPOSH="https://ohmyposh.dev/install.sh"
 
 # =============================================================================
 # Colors and output functions (bash/zsh compatible)
@@ -113,6 +114,11 @@ cmd_exists() {
     command -v "$1" &>/dev/null
 }
 
+# Check if running on Debian-based Linux
+is_debian() {
+    [[ "$OS_TYPE" == "debian" ]]
+}
+
 # Ask yes/no question (default: yes)
 confirm() {
     local prompt="$1"
@@ -137,6 +143,19 @@ abort_missing() {
     print_info "$dep is required to install $ZCONFIG."
     print_error "Cannot continue. Exiting."
     return 1
+}
+
+# Disable needrestart prompts (before zconfig is available)
+disable_needrestart() {
+    is_debian || return 0
+    local conf="/etc/needrestart/needrestart.conf"
+    [[ -f "$conf" ]] || return 0
+    sudo sed -i "s/#\\\$nrconf{restart} = 'i';/\\\$nrconf{restart} = 'a';/g" "$conf" &>/dev/null
+}
+
+# Run zconfig function (after clone & symlink, uses interactive zsh)
+run_zconfig() {
+    zsh -i -c "$*" 2>/dev/null
 }
 
 # Print installation header
@@ -200,9 +219,7 @@ check_os() {
 }
 
 check_sudo() {
-    if [[ "$OS_TYPE" != "debian" ]]; then
-        return 0
-    fi
+    is_debian || return 0
 
     print_header "Checking sudo availability"
 
@@ -218,9 +235,7 @@ check_sudo() {
 }
 
 update_system() {
-    if [[ "$OS_TYPE" != "debian" ]]; then
-        return 0
-    fi
+    is_debian || return 0
 
     print_header "Updating system packages"
     print_info "This may take a moment..."
@@ -288,7 +303,7 @@ check_zsh() {
     # zsh not found - install it
     print_warning "zsh is not installed"
 
-    if [[ "$OS_TYPE" == "debian" ]]; then
+    if is_debian; then
         print_info "Installing zsh via apt..."
         if sudo apt install zsh -y &>/dev/null; then
             print_success "zsh installed successfully"
@@ -304,10 +319,74 @@ check_zsh() {
     fi
 }
 
-install_kitty_terminfo() {
-    if [[ "$OS_TYPE" != "debian" ]]; then
+install_core_utils() {
+    is_debian || return 0
+
+    print_header "Checking core utilities"
+
+    # Tools and their packages (command:package)
+    local tools=(
+        "curl:curl"
+        "unzip:unzip"
+        "realpath:coreutils"
+        "dirname:coreutils"
+    )
+
+    local missing=()
+    local cmd pkg
+
+    for tool in "${tools[@]}"; do
+        cmd="${tool%%:*}"
+        pkg="${tool##*:}"
+        if ! cmd_exists "$cmd"; then
+            print_warning "$cmd is not available"
+            # Add package if not already in list
+            [[ ! " ${missing[*]} " =~ " ${pkg} " ]] && missing+=("$pkg")
+        fi
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        print_success "All core utilities available"
         return 0
     fi
+
+    print_info "Installing: ${missing[*]}..."
+    if sudo apt install -y "${missing[@]}" >/dev/null; then
+        print_success "Core utilities installed"
+    else
+        print_error "Failed to install core utilities"
+        return 1
+    fi
+}
+
+check_omp() {
+    print_header "Checking oh-my-posh"
+
+    # Check common locations
+    if cmd_exists oh-my-posh || [[ -x "$HOME/bin/oh-my-posh" ]]; then
+        print_success "oh-my-posh is available"
+        return 0
+    fi
+
+    # Not found - install it
+    print_warning "oh-my-posh is not installed"
+    print_info "Installing oh-my-posh to ~/bin..."
+
+    # Ensure ~/bin exists
+    mkdir -p "$HOME/bin"
+
+    # Install silently
+    if curl -fsSL "$URL_OHMYPOSH" | bash -s -- -d "$HOME/bin" &>/dev/null; then
+        print_success "oh-my-posh installed successfully"
+        return 0
+    else
+        print_warning "Failed to install oh-my-posh (non-critical)"
+        return 0
+    fi
+}
+
+install_kitty_terminfo() {
+    is_debian || return 0
 
     print_header "Installing kitty-terminfo"
 
@@ -467,13 +546,13 @@ install_homebrew() {
     fi
 
     # Fix for Linux: ensure /home/linuxbrew exists with correct permissions
-    if [[ "$OS_TYPE" == "debian" ]]; then
+    if is_debian; then
         sudo mkdir -p /home/linuxbrew/
         sudo chmod 755 /home/linuxbrew/
     fi
 
-    print_info "Installing Homebrew..."
-    if NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$HOMEBREW_INSTALL")"; then
+    print_info "Installing Homebrew (this may take a while)..."
+    if NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL "$URL_HOMEBREW")" &>/dev/null; then
         print_success "Homebrew installed successfully"
         init_brew_shellenv
         brew analytics off &>/dev/null
@@ -532,10 +611,13 @@ main() {
     # Requirement checks
     check_os || return 1
     check_sudo || return 1
+    disable_needrestart
     update_system
+    install_core_utils || return 1
     install_homebrew || return 1
     check_git || return 1
     check_zsh || return 1
+    check_omp
 
     # Optional installs for Linux
     install_kitty_terminfo
@@ -543,9 +625,15 @@ main() {
     # Handle existing installation
     backup_existing || return 1
 
-    # Main installation
+    # Cloning zconfig repository
     clone_repository || return 1
+
+    # Creating .zshenv symlink
     create_symlink || return 1
+
+    # Minimize login info on Linux
+    is_debian && run_zconfig "mli"
+
     set_default_shell
 
     # Success message

@@ -1,10 +1,10 @@
 # Part of zconfig · https://github.com/barabasz/zconfig · MIT License
 #
-# Minimize login information on Linux systems
+# Minimize / hide login information on Linux systems
 # Use 'mli --help' for more information.
 
 local -A _fn=(
-    [info]="Minimize login information on Linux systems"
+    [info]="Minimize / hide login information on Linux systems"
     [desc]="Disables verbose MOTD (Message of the Day) scripts on Ubuntu/Debian
             and creates ~/.hushlogin to suppress login messages."
     [version]="0.2.0"

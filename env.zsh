@@ -8,46 +8,53 @@ zfile_track_start ${0:A}
 # Zsh-config core environment variables
 ##
 
-# Configuration version
+# Configuration version 
 export ZSH_CONFIG_VERSION="20260130v1"
 
-# Directories configuration
+# zconfig directories
 export CONFDIR=$HOME/.config
 export ZDOTDIR=$CONFDIR/zsh
-export ZCACHEDIR=$ZDOTDIR/cache
-export SHELL_SESSION_DIR="$ZCACHEDIR/sessions"
+export ZSH_CACHE_DIR=$ZDOTDIR/cache
 export ZSH_INC_DIR=$ZDOTDIR/inc
-export TMP=$HOME/.tmp
-export TEMP=$TMP
-export TEMPDIR=$TMP
-export TMPDIR=$TMP
-export BINDIR=$HOME/bin
-export LIBDIR=$HOME/lib
+export ZSH_LIB_DIR=$ZDOTDIR/lib
+export ZSH_APPS_DIR=$ZDOTDIR/apps
+export ZSH_FUNCS_DIR=$ZDOTDIR/functions
+export ZSH_PLUGINS_DIR=$ZDOTDIR/plugins
+
+# System directories
+export LOCALDIR=$HOME/.local
+export TMPDIR=$LOCALDIR/tmp
+export TMP=$TMPDIR
+export TEMP=$TMPDIR
+export VENVDIR=$LOCALDIR/venv
+export BINDIR=$LOCALDIR/bin
+export LIBDIR=$LOCALDIR/lib
+export CACHEDIR=$LOCALDIR/cache
+export DATADIR=$LOCALDIR/share
+export STATEDIR=$LOCALDIR/state
+
+# User directories
+# See also inc/xdg.zsh for XDG variables
 export DLDIR=$HOME/Downloads
 export DOCDIR=$HOME/Documents
-export CACHEDIR=$HOME/.cache
-export VENVDIR=$HOME/.venv
+
+# Ensure all *DIR directories exist
+local _var                                                                                                                                                                     
+for _var in ${(Mk)parameters:#*DIR}; do                                                                                                                                        
+    [[ -d ${(P)_var} ]] || mkdir -p "${(P)_var}"                                                                                                                               
+done
 
 # Library files configuration
-export ZSH_LIB_DIR=$ZDOTDIR/lib
 export ZSH_LOAD_LIB=${ZSH_LOAD_LIB:-1}          # set to 1 to load library files from lib/
-
 # Compilation (zws) configuration
 export ZSH_AUTOCOMPILE=${ZSH_AUTOCOMPILE:-1}  # set to 1 to enable auto-compilation of zsh scripts
-
 # Apps configuration
-export ZSH_APPS_DIR=$ZDOTDIR/apps
 export ZSH_LOAD_APPS=${ZSH_LOAD_APPS:-1}      # set to 1 to load app configurations from apps/
-
 # User functions configuration
-export ZSH_FUNCS_DIR=$ZDOTDIR/functions
 export ZSH_LOAD_FUNCS=${ZSH_LOAD_FUNCS:-1}  # set to 1 to load functions from functions/
-
 # Plugins configuration
-export ZSH_PLUGINS_DIR=$ZDOTDIR/plugins
 export ZSH_LOAD_PLUGINS=${ZSH_LOAD_PLUGINS:-1}  # set to 1 to load plugins from plugins/
 export ZSH_PLUGINS_AUTOINSTALL=${ZSH_PLUGINS_AUTOINSTALL:-1}  # set to 1 to auto-install missing plugins
-
 ## Debug and info messages
 export ZSH_DEBUG=${ZSH_DEBUG:-1}              # set to 1 to enable zsh debug messages
 export ZSH_ZFILE_DEBUG=${ZSH_ZFILE_DEBUG:-0}  # set to 1 to enable zfile sourcing debug messages

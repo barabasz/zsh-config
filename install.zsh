@@ -148,9 +148,9 @@ install_header() {
 
 # Print installation successful message
 installation_successful() {
-    print_banner "Installation complete! 🎉"
-    print_info "$ZCONFIG installed to: $ZCONFIG_DIR"
-    print_info "Configuration loaded from: $ZSHENV_LINK"
+    print_banner "Installation complete!"
+    print_info "$ZCONFIG installed to: ${c}$ZCONFIG_DIR${x}"
+    print_info "Entry point for zsh:  ${c}$ZSHENV_LINK${x}"
     printf "\n"
     print_info "On first run, $ZCONFIG will automatically:"
     print_info "  - Download and install required plugins"
@@ -557,3 +557,4 @@ main() {
 
 # Run main function
 main
+

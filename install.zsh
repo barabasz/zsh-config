@@ -17,8 +17,9 @@
 # Configuration
 # =============================================================================
 
-SCRIPT_VERSION="0.0.2"
+SCRIPT_VERSION="0.0.3"
 SCRIPT_DATE="2026-02-03"
+ZCONFIG="${g}zconfig${x}"
 ZCONFIG_REPO="https://github.com/barabasz/zconfig.git"
 ZCONFIG_DIR="$HOME/.config/zsh"
 ZSHENV_LINK="$HOME/.zshenv"
@@ -36,6 +37,7 @@ if [[ -t 1 ]]; then
     b=$'\033[0;34m'     # blue
     c=$'\033[0;36m'     # cyan
     w=$'\033[0;37m'     # white
+    d=$'\033[0;90m'     # dimmed (bright black) - for comments
     x=$'\033[0m'        # reset
 else
     r='' g='' y='' b='' c='' w='' x=''
@@ -61,13 +63,17 @@ print_info() {
     printf "${c}→${x} %s\n" "$1"
 }
 
+print_comment() {
+    printf "${d}# %s${x}\n" "$1"
+}
+
 print_banner() {
     local text="$1"
     local width=39
     local padding=$(( (width - ${#text}) / 2 ))
     local pad_left=$(printf '%*s' $padding '')
     local pad_right=$(printf '%*s' $((width - ${#text} - padding)) '')
-    printf "\n${g}"
+    printf "\n${y}"
     printf "  ╔═══════════════════════════════════════╗\n"
     printf "  ║%s%s%s║\n" "$pad_left" "$text" "$pad_right"
     printf "  ╚═══════════════════════════════════════╝${x}\n"
@@ -128,24 +134,25 @@ confirm_no() {
 # Abort installation due to missing dependency
 abort_missing() {
     local dep="$1"
-    print_info "$dep is required to install zconfig."
+    print_info "$dep is required to install $ZCONFIG."
     print_error "Cannot continue. Exiting."
     return 1
 }
 
 # Print installation header
 install_header() {
-    print_banner "zconfig installer v$SCRIPT_VERSION ($SCRIPT_DATE)"
-    print_info "This will install ${g}zconfig${x} to ${c}$ZCONFIG_DIR${x}"
+    print_banner "zconfig installer"
+    print_comment "Script version: $SCRIPT_VERSION ($SCRIPT_DATE)"
+    print_info "This will install $ZCONFIG to ${c}$ZCONFIG_DIR${x}"
 }
 
 # Print installation successful message
 installation_successful() {
     print_banner "Installation complete! 🎉"
-    print_info "zconfig installed to: $ZCONFIG_DIR"
+    print_info "$ZCONFIG installed to: $ZCONFIG_DIR"
     print_info "Configuration loaded from: $ZSHENV_LINK"
     printf "\n"
-    print_info "On first run, zconfig will automatically:"
+    print_info "On first run, $ZCONFIG will automatically:"
     print_info "  - Download and install required plugins"
     print_info "  - Compile zsh files for faster loading"
     printf "\n"
@@ -157,7 +164,8 @@ prompt_start_zsh() {
         print_info "Starting zsh..."
         exec zsh
     else
-        print_info "Run 'exec zsh' or open a new terminal to start using zconfig"
+        print_info "Run 'exec zsh' or open a new terminal to start using $ZCONFIG"
+        echo ""
     fi
 }
 
@@ -180,12 +188,12 @@ check_os() {
             ;;
         linux-other|linux-unknown)
             print_error "Unsupported Linux distribution"
-            print_info "zconfig requires Debian-based Linux (Debian, Ubuntu, Mint, etc.)"
+            print_info "$ZCONFIG requires Debian-based Linux (Debian, Ubuntu, Mint, etc.)"
             return 1
             ;;
         *)
             print_error "Unsupported operating system: $(uname -s)"
-            print_info "zconfig supports macOS and Debian-based Linux only"
+            print_info "$ZCONFIG supports macOS and Debian-based Linux only"
             return 1
             ;;
     esac
@@ -351,6 +359,7 @@ backup_existing() {
     print_info "Existing files will be backed up with .bak.$backup_timestamp suffix"
     if ! confirm "Create backups and continue?"; then
         print_error "Installation cancelled by user"
+        echo ""
         return 1
     fi
 
@@ -382,7 +391,7 @@ backup_existing() {
 }
 
 clone_repository() {
-    print_header "Cloning zconfig repository"
+    print_header "Cloning $ZCONFIG repository"
 
     # Ensure parent directory exists
     mkdir -p "$(dirname "$ZCONFIG_DIR")"

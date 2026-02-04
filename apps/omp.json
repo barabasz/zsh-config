@@ -251,7 +251,13 @@
           "foreground": "p:blue",
           "invert_powerline": true,
           "template": " {{ .CurrentDate | date .Format }} {{ .Var.clock }} ",
-          "trailing_diamond": "─╮"
+          "trailing_diamond": "─╮",
+          "foreground_templates": [
+            "{{ if .Root }}p:white{{ end }}"
+          ],
+          "background_templates": [
+            "{{ if .Root }}p:red{{ end }}"
+          ]
         }
       ]
     },
@@ -265,7 +271,10 @@
           "foreground": "p:darkblue",
           "style": "plain",
           "template": "╰─",
-          "type": "text"
+          "type": "text",
+          "foreground_templates": [
+            "{{ if .Root }}p:white{{ end }}"
+          ]
         }
       ]
     },
@@ -278,7 +287,10 @@
           "foreground": "p:darkblue",
           "style": "plain",
           "template": "─╯",
-          "type": "text"
+          "type": "text",
+          "foreground_templates": [
+            "{{ if .Root }}p:white{{ end }}"
+          ]
         }
       ]
     }

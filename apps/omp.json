@@ -46,7 +46,10 @@
           "foreground": "p:blue",
           "background": "p:darkblue",
           "powerline_symbol": "",
-          "template": "{{ first (splitList \".\" .HostName) }} "
+          "template": "{{ first (splitList \".\" .HostName) }} ",
+          "foreground_templates": [
+            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
+          ]
         },
         {
           "type": "text",

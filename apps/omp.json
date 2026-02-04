@@ -31,27 +31,37 @@
       "segments": [
         {
           "type": "os",
-          "foreground": "p:lightblue",
+          "foreground": "p:blue",
           "background": "p:darkblue",
           "leading_diamond": "╭─",
           "style": "diamond",
-          "template": " {{ if .WSL }}WSL at {{ end }}{{.Icon}} "
+          "template": " {{ if .WSL }}WSL at {{ end }}{{.Icon}} ",
+          "foreground_templates": [
+            "{{ if .SSHSession }}p:orange{{ end }}"
+          ]
         },
         {
           "type": "session",
           "style": "powerline",
-          "foreground": "p:lightblue",
+          "foreground": "p:blue",
           "background": "p:darkblue",
           "powerline_symbol": "",
           "template": "{{ first (splitList \".\" .HostName) }} "
         },
         {
+          "type": "text",
+          "style": "powerline",
+          "foreground": "p:blue",
+          "background": "p:darkblue",
+          "template": ""
+        },
+        {
           "type": "session",
           "style": "powerline",
-          "foreground": "#ffffff",
-          "background": "#c386f1",
+          "foreground": "p:blue",
+          "background": "p:darkblue",
           "powerline_symbol": "",
-          "template": " {{ if .SSHSession }}{{ .HostName }}   {{ end }}{{ .UserName }} "
+          "template": " {{ if .SSHSession }}{{ .HostName }}   {{ end }}{{ .UserName }} "
         },
         {
           "type": "path",

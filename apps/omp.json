@@ -37,7 +37,7 @@
           "style": "diamond",
           "template": " {{ if .WSL }}WSL at {{ end }}{{.Icon}} ",
           "foreground_templates": [
-            "{{ if .Env.SSH_CONNECTION }}p:orange{{ end }}"
+            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
           ]
         },
         {

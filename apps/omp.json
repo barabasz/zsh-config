@@ -66,7 +66,11 @@
           "powerline_symbol": "",
           "template": "{{ .UserName }} ",
           "foreground_templates": [
-            "{{ if .SSHSession }}p:orange{{ end }}"
+            "{{ if .SSHSession }}p:orange{{ end }}",
+            "{{ if .Root }}p:white{{ end }}"
+          ],
+          "background_templates": [
+            "{{ if .Root }}p:red{{ end }}"
           ]
         },
         {

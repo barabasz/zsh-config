@@ -37,7 +37,7 @@
           "style": "diamond",
           "template": " {{ if .WSL }}WSL at {{ end }}{{.Icon}} ",
           "foreground_templates": [
-            "{{ if .SSHSession }}p:orange{{ end }}"
+            "{{ if .Env.SSH_CONNECTION }}p:orange{{ end }}"
           ]
         },
         {
@@ -61,7 +61,7 @@
           "foreground": "p:blue",
           "background": "p:darkblue",
           "powerline_symbol": "",
-          "template": " {{ if .SSHSession }}{{ .HostName }}   {{ end }}{{ .UserName }} "
+          "template": " {{ .UserName }} "
         },
         {
           "type": "path",

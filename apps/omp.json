@@ -37,7 +37,11 @@
           "style": "diamond",
           "template": " {{ if .WSL }}WSL at {{ end }}{{.Icon}} ",
           "foreground_templates": [
-            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
+            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}",
+            "{{ if .Root }}p:white{{ end }}"
+          ],
+          "background_templates": [
+            "{{ if .Root }}p:red{{ end }}"
           ]
         },
         {
@@ -48,7 +52,11 @@
           "powerline_symbol": "",
           "template": "{{ first (splitList \".\" .HostName) }} ",
           "foreground_templates": [
-            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
+            "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}",
+            "{{ if .Root }}p:white{{ end }}"
+          ],
+          "background_templates": [
+            "{{ if .Root }}p:red{{ end }}"
           ]
         },
         {

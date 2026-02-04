@@ -93,14 +93,15 @@ os_codename() {
 # Helper for Linux codename
 _linux_codename() {
     [[ -f /etc/os-release ]] || return 1
-    local content="${(f)$(</etc/os-release)}"
-    local line=${${(M)content:#VERSION_CODENAME=*}#VERSION_CODENAME=}
-    
+
+    # Try VERSION_CODENAME first
+    local line=${${(M)${(f)"$(</etc/os-release)"}:#VERSION_CODENAME=*}#VERSION_CODENAME=}
+
     # Fallback to PRETTY_NAME if VERSION_CODENAME is missing
     if [[ -z "$line" ]]; then
-        line=${${(M)content:#PRETTY_NAME=*}#PRETTY_NAME=}
+        line=${${(M)${(f)"$(</etc/os-release)"}:#PRETTY_NAME=*}#PRETTY_NAME=}
     fi
-    
+
     print -- "${(C)${line//\"/}}"
 }
 

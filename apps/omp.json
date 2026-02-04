@@ -56,7 +56,13 @@
           "style": "powerline",
           "foreground": "p:blue",
           "background": "p:darkblue",
-          "template": ""
+          "template": "",
+          "foreground_templates": [
+            "{{ if .Root }}p:white{{ end }}"
+          ],
+          "background_templates": [
+            "{{ if .Root }}p:red{{ end }}"
+          ]
         },
         {
           "type": "session",

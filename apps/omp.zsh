@@ -11,7 +11,7 @@ zfile_track_start ${0:A}
 
 # Define paths 
 # matches your current config path:
-local omp_config="$ZSH_APPS_DIR/omp.json"
+local omp_config="$ZSH_APPS_DIR/omp.yaml"
 local cache_dir=$ZSH_CACHE_DIR
 local cache_file="$cache_dir/omp_init.zsh"
 local zwc_file="${cache_file}.zwc"

@@ -42,6 +42,7 @@ icons:
   icon_divider_left: &icon_divider_left "\ue0b3"       # <
   icon_divider_right: &icon_divider_right " \ue0b1"    # >
   icon_edit: &icon_edit "\uf044"                       # 📝
+  icon_network: &icon_network "\uef09"                 # network
   icon_floppy: &icon_floppy "\ueb4b"                   # 💾
   icon_folder: &icon_folder "\uf07c"                   # 📁 
   icon_git: &icon_git "\uf126 "                        # git
@@ -67,6 +68,7 @@ var:
   lock: *icon_lock
   ok: *icon_ok
   python: *icon_python
+  network: *icon_network
 
 # ------------------------------------------------------------------------------
 # Template strings
@@ -231,13 +233,13 @@ blocks:
           - *background_root
 
       # Computer icon
-      - type: text
+      - type: session
         foreground: p:blue
-        background: p:orange
+        background: p:darkblue
         invert_powerline: true
         trailing_diamond: *icon_corner_tr
         style: diamond
-        template: *icon_computer
+        template: "{{ if .SSHSession }}{{ .Var.network }}{{ else }}{{ .Var.computer }}{{ end }}"
   
   ## Bottom left part of the prompt
   - type: prompt

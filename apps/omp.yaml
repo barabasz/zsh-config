@@ -193,19 +193,6 @@ blocks:
         powerline_symbol: *icon_triangle_left
         template: " {{ .FormattedMs }} {{ .Var.hourglass }} "
 
-      # # Current time
-      # - type: time
-      #   style: diamond
-      #   background: p:darkblue
-      #   foreground: p:blue
-      #   invert_powerline: true
-      #   template: " {{ .CurrentDate | date .Format }} {{ .Var.clock }} "
-      #   trailing_diamond: *icon_corner_tr
-      #   foreground_templates:
-      #     - *foreground_root
-      #   background_templates:
-      #     - *background_root
-
       # Username
       - type: session
         style: powerline

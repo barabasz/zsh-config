@@ -42,7 +42,7 @@ icons:
   icon_divider_left: &icon_divider_left "\ue0b3"       # <
   icon_divider_right: &icon_divider_right " \ue0b1"    # >
   icon_edit: &icon_edit "\uf044"                       # 📝
-  icon_network: &icon_network "\uef09 "                 # network
+  icon_network: &icon_network " \uef09 "               # network
   icon_floppy: &icon_floppy "\ueb4b"                   # 💾
   icon_folder: &icon_folder "\uf07c"                   # 📁 
   icon_git: &icon_git "\uf126 "                        # git
@@ -76,7 +76,8 @@ var:
 template_strings:
   background_root: &background_root "{{ if .Root }}p:red{{ end }}"
   foreground_root: &foreground_root "{{ if .Root }}p:white{{ end }}"
-  foreground_ssh: &foreground_ssh "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
+  background_ssh: &background_ssh "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
+  foreground_ssh: &foreground_ssh "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:black{{ end }}"
   hostname: &hostname " {{ first (splitList \".\" .HostName) }} "
 
 # ------------------------------------------------------------------------------
@@ -228,9 +229,8 @@ blocks:
         template: *hostname
         foreground_templates:
           - *foreground_ssh
-          - *foreground_root
         background_templates:
-          - *background_root
+          - *background_ssh
 
       # Computer icon
       - type: session

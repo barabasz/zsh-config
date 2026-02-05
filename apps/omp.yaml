@@ -146,7 +146,7 @@ blocks:
 
       # Git status
       - type: git
-        background: '#4e9a06'
+        background: p:green
         background_templates:
           - "{{ if or (.Working.Changed) (.Staging.Changed) }}#c4a000{{ end }}"
           - "{{ if and (gt .Ahead 0) (gt .Behind 0) }}#f26d50{{ end }}"

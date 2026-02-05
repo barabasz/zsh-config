@@ -355,6 +355,19 @@ str_replace_all() {
     print -- "${1//$2/$3}"
 }
 
+# Convert string to JSON-ready Unicode escape sequences
+# Usage: str_to_unicode "⌘"
+# Returns: \u2318
+str_to_unicode() {
+    (( ARGC >= 1 )) || return 2
+    local input="$*"
+    local char
+    for char in ${(s::)input}; do
+        printf '\\u%04X' "'$char"
+    done
+    print
+}
+
 # --- Checks ---
 
 # Check if string is empty

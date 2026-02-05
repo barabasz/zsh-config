@@ -23,6 +23,6 @@ for func desc in ${(kv)print_funcs}; do
         $func "This is a demo of $c$func$x function ($desc)."
     fi
 done
-printl
-printkv "Key" "Value"
-yesno "Do you like Zsh?" && prints "Great!" || printw "Too bad..."
+# printl
+# printkv "Key" "Value"
+# yesno "Do you like Zsh?" && prints "Great!" || printw "Too bad..."

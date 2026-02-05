@@ -8,6 +8,8 @@ zfile_track_start ${0:A}
 # Depends on colors and glyphs defined in inc/bootstrap.zsh
 # (e.g. $r, $g, $x, $ICO_ERROR, $ICO_OK etc.)
 
+export PRINT_ICON_SPACE="  "  # Space between icon and text
+
 # --- Standard Logging ---
 
 # Print error message to stderr
@@ -20,7 +22,7 @@ printe() {
     local glyph="${3:-$ICO_ERROR}"   # Glyph (from global vars)
     local gc="${4:-$x}"              # Glyph Color
     
-    print -u2 -- "${gc}${glyph}${x} ${tc}${text}${x}"
+    print -u2 -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
 }
 
 # Print warning message to stderr
@@ -33,7 +35,7 @@ printw() {
     local glyph="${3:-$ICO_WARN}"
     local gc="${4:-$x}"
 
-    print -u2 -- "${gc}${glyph}${x} ${tc}${text}${x}"
+    print -u2 -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
 }
 
 # Print bell message to stdout (with sound)
@@ -48,7 +50,7 @@ printb() {
     
     # \a is the bell character
     print -n -- "\a"
-    print -- "${gc}${glyph}${x} ${tc}${text}${x}"
+    print -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
 }
 
 # Print info message to stdout
@@ -61,7 +63,7 @@ printi() {
     local glyph="${3:-$ICO_INFO}"
     local gc="${4:-$x}"
 
-    print -- "${gc}${glyph}${x} ${tc}${text}${x}"
+    print -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
 }
 
 # Print success message to stdout
@@ -74,7 +76,7 @@ prints() {
     local glyph="${3:-$ICO_OK}"
     local gc="${4:-$x}"
 
-    print -- "${gc}${glyph}${x} ${tc}${text}${x}"
+    print -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
 }
 # Alias: printok
 functions[printok]=$functions[prints]
@@ -91,7 +93,7 @@ printd() {
         local glyph="${3:-$ICO_DEBUG}"
         local gc="${4:-$x}"
         
-        print -u2 -- "${gc}${glyph}${x} ${tc}${text}${x}"
+        print -u2 -- "${gc}${glyph}${x}${PRINT_ICON_SPACE}${tc}${text}${x}"
     fi
 }
 
@@ -158,7 +160,7 @@ printcol() {
 printul() {
     (( ARGC >= 1 )) || return 2
     local item
-    local bullet="•" 
+    local bullet="$ICO_UL"
     
     for item in "$@"; do
         print -- " ${b}${bullet}${x} ${item}"

@@ -5,8 +5,7 @@ Part of [zconfig](../README.md) documentation.
 ## Requirements
 
 - **Operating system:** macOS or Debian-based Linux (Debian, Ubuntu, Mint, etc.)
-- **Zsh:** version 5.8 or higher
-- **Git:** installed on your system
+- **[Nerd Font](https://www.nerdfonts.com/):** installed and configured in your terminal emulator
 
 ## Quick Install (Recommended)
 

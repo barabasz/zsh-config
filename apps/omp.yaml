@@ -44,12 +44,12 @@ icons:
   icon_edit: &icon_edit "\uf044"                       # 📝
   icon_network: &icon_network " \uef09 "               # network
   icon_floppy: &icon_floppy "\ueb4b"                   # 💾
-  icon_folder: &icon_folder "\uf07c"                   # 📁 
+  icon_folder: &icon_folder "\uf07c "                  # 📁 
   icon_git: &icon_git "\uf126 "                        # git
-  icon_python: &icon_python "\ue235"                   # python
+  icon_python: &icon_python "\ue235 "                  # python
   icon_hourglass: &icon_hourglass "\uf252"             # ⌛
-  icon_lock: &icon_lock "\uf023"                       # 🔒
-  icon_ok: &icon_ok "\uf00c"                           # ✔
+  icon_lock: &icon_lock " \uf023 "                     # 🔒
+  icon_ok: &icon_ok "\uf00c "                          # ✔
   icon_triangle_left: &icon_triangle_left "\ue0b2"     # ◀
   icon_triangle_right: &icon_triangle_right "\ue0b0"   # ▶
 
@@ -60,6 +60,8 @@ var:
   check: *icon_check
   clock: *icon_clock
   computer: *icon_computer
+  divleft: *icon_divider_left
+  divright: *icon_divider_right
   edit: *icon_edit
   floppy: *icon_floppy
   folder: *icon_folder
@@ -80,6 +82,7 @@ template_strings:
   foreground_ssh: &foreground_ssh "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:black{{ end }}"
   foreground_ssh_inv: &foreground_ssh_inv "{{ if or .Env.SSH_CONNECTION .Env.SSH_CLIENT .Env.SSH_TTY }}p:orange{{ end }}"
   hostname: &hostname " {{ first (splitList \".\" .HostName) }} "
+  hosticon: &hosticon "{{ if .SSHSession }}{{ .Var.network }}{{ else }}{{ .Var.computer }}{{ end }} "
 
 # ------------------------------------------------------------------------------
 # Transient prompt (shown after command execution)
@@ -123,7 +126,17 @@ blocks:
         properties:
           home_icon: "~"
           style: full
-        template: " {{ if .Writable }}{{ .Var.folder }}{{ else }}{{ .Var.lock }}{{ end }} {{ .Path }} "
+        template: "{{ if .Writable }}{{ else }}{{ .Var.lock }}{{ end }} {{ .Path }} "
+
+      # Languages
+      - type: python
+        style: powerline
+        powerline_symbol: *icon_triangle_right
+        foreground: p:blue
+        background: p:darkblue
+        properties:
+          display_mode: files
+        template: " {{ .Var.python }} "
 
       # Git status
       # - green: clean
@@ -149,16 +162,6 @@ blocks:
           fetch_upstream_icon: true
         style: powerline
         template: " {{ .HEAD }}{{if .BranchStatus }} {{ .BranchStatus }}{{ end }}{{ if .Working.Changed }} {{ .Var.edit }} {{ .Working.String }}{{ end }}{{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}{{ if .Staging.Changed }} {{ .Var.check }} {{ .Staging.String }}{{ end }}{{ if gt .StashCount 0 }} {{ .Var.floppy }} {{ .StashCount }}{{ end }} "
-
-      # Languages
-      - type: python
-        style: powerline
-        powerline_symbol: *icon_triangle_right
-        foreground: p:white
-        background: p:darkblue
-        properties:
-          display_mode: files
-        template: " {{ .Var.python }} "
   
   ## Top right part of the prompt
   - type: prompt
@@ -179,7 +182,7 @@ blocks:
         powerline_symbol: *icon_triangle_left
         properties:
           always_enabled: true
-        template: " {{ if gt .Code 0 }}{{ reason .Code }}{{ else }}{{ .Var.ok }}{{ end }}  "
+        template: " {{ if gt .Code 0 }}{{ reason .Code }}{{ else }}{{ .Var.ok }}{{ end }} "
 
       # Execution time
       - type: executiontime
@@ -213,9 +216,9 @@ blocks:
         template: " {{ .UserName }} "
         foreground_templates:
           - "{{ if .SSHSession }}p:orange{{ end }}"
-          - "{{ if .Root }}p:white{{ end }}"
+          - *foreground_root
         background_templates:
-          - "{{ if .Root }}p:red{{ end }}"
+          - *background_root
 
       # Hostname
       - type: session
@@ -237,7 +240,7 @@ blocks:
         invert_powerline: true
         trailing_diamond: *icon_corner_tr
         style: diamond
-        template: "{{ if .SSHSession }}{{ .Var.network }}{{ else }}{{ .Var.computer }}{{ end }}"
+        template: *hosticon
         foreground_templates:
           - *foreground_ssh_inv
   

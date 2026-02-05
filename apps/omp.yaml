@@ -108,10 +108,7 @@ blocks:
         style: diamond
         template: " {{.Icon}}  "
         foreground_templates:
-          - *foreground_ssh
-          - *foreground_root
-        background_templates:
-          - *background_root
+          - *foreground_ssh_inv
 
       # Current path
       - type: path

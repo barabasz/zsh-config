@@ -17,8 +17,8 @@
 # Configuration
 # =============================================================================
 
-SCRIPT_VERSION="0.3.0"
-SCRIPT_DATE="2026-02-04"
+SCRIPT_VERSION="0.3.1"
+SCRIPT_DATE="2026-02-08"
 ZCONFIG_REPO="https://github.com/barabasz/zconfig.git"
 ZCONFIG_DIR="$HOME/.config/zsh"
 ZSHENV_LINK="$HOME/.zshenv"
@@ -65,8 +65,8 @@ SKIPPED=()
 
 # Step counter and timing
 STEP_NUM=0
-# Check if EPOCHREALTIME is available (zsh or bash 5+)
-if [[ -n "$ZSH_VERSION" ]] || [[ "${BASH_VERSINFO[0]:-0}" -ge 5 ]]; then
+# Check if EPOCHREALTIME is available and has a value
+if [[ -n "${EPOCHREALTIME:-}" ]]; then
     USE_EPOCH=1
     START_TIME=$EPOCHREALTIME
 else
@@ -79,11 +79,11 @@ print_header() {
 
     # Calculate elapsed time
     local elapsed
-    if [[ $USE_EPOCH -eq 1 ]]; then
-        # Floating point with EPOCHREALTIME (zsh or bash 5+)
+    if [[ $USE_EPOCH -eq 1 ]] && [[ -n "${EPOCHREALTIME:-}" ]]; then
+        # Floating point with EPOCHREALTIME
         elapsed=$(awk "BEGIN {printf \"%.2f\", $EPOCHREALTIME - $START_TIME}")
     else
-        # Integer seconds fallback (older bash)
+        # Integer seconds fallback
         elapsed=$((SECONDS - START_TIME))
     fi
 

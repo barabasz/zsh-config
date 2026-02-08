@@ -846,6 +846,8 @@ set_default_shell() {
 }
 
 post_install_fixes() {
+    print_header "Performing post-installation fixes"
+
     # Fix permissions for .config directory (common issue on Linux)
     if [[ -d "$XDG_CONFIG_HOME" ]]; then
         sudo chown -R "$(whoami)" "$XDG_CONFIG_HOME"

@@ -500,11 +500,11 @@ install_extra_utils() {
 
     local tools=(
         # Platform-specific (brew on macOS, apt on Linux)
+        "bat:bat:bat"
         "bc:bc:bc"
         "eza:eza:eza"
         "htop:htop:htop"
         # Brew-only (both systems)
-        "bat:bat:"
         "gh:gh:"
         "fzf:fzf:"
         "zoxide:zoxide:"

@@ -437,11 +437,11 @@ update_system() {
 }
 
 install_git() {
-    install_pkg git git git git 1
+    install_pkg git Git git git 1
 }
 
 install_zsh() {
-    install_pkg zsh zsh zsh zsh 1
+    install_pkg zsh Zsh zsh zsh 1
 }
 
 install_core_utils() {

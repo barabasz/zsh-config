@@ -18,7 +18,7 @@ Part of [zconfig](../README.md) documentation.
 │   ├── xdg.zsh             # XDG Base Directories
 │   ├── colors.zsh          # ANSI color codes
 │   ├── icons.zsh           # Icon/glyph exports
-│   ├── history.zsh         # History options
+│   ├── options.zsh         # Shell options (setopt/unsetopt)
 │   ├── prompt.zsh          # Fallback prompt
 │   ├── path.zsh            # PATH configuration
 │   ├── hashdirs.zsh        # Named directory hashes

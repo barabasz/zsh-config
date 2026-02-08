@@ -36,8 +36,7 @@ zmodload zsh/computil
 # zmodload zsh/curses
 
 # Some date/time commands and parameters.
-# zmodload zsh/datetime # already loaded by inc/zfiles.zsh
-
+zmodload zsh/datetime
 
 # Some basic file manipulation commands as builtins.
 # zmodload zsh/files

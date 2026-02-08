@@ -4,8 +4,8 @@
 # Shell files tracking - keep at the top
 zfile_track_start "$ZDOTDIR/.zshrc"
 
-# History configuration
-source "$ZSH_INC_DIR/history.zsh"
+# Options configuration
+(( ZSH_LOAD_OPTIONS )) && source "$ZSH_INC_DIR/options.zsh"
 
 # Colors variables
 (( ZSH_LOAD_COLORS )) && source "$ZSH_INC_DIR/colors.zsh"
@@ -25,6 +25,8 @@ if (( ZSH_LOAD_SHELL_FUNCS )); then
     autoload -Uz zmv
 fi
 
+# Helper library
+(( ZSH_LOAD_LIB )) && source_zsh_dir "$ZSH_LIB_DIR"
 
 # User functions
 if (( ZSH_LOAD_USER_FUNCS )); then
@@ -46,6 +48,9 @@ fi
 
 # Plugin configurations
 (( ZSH_LOAD_PLUGINS )) && source "$ZSH_INC_DIR/plugins.zsh"
+
+# Auto-compile changed files (for next shell startup)
+(( ZSH_AUTOCOMPILE )) && compile_zsh_config -q
 
 # shell files tracking - keep at the end
 zfile_track_end "$ZDOTDIR/.zshrc"

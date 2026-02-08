@@ -8,9 +8,9 @@ local -A _fn=(
     [desc]="Scans the zconfig lib/ and functions/ directories for function definitions
             and displays them with their descriptions. Supports filtering, grouping, and
             markdown export."
-    [version]="0.5.0"
+    [version]="0.5.1"
     [created]="2025"
-    [modified]="2026-02-02"
+    [modified]="2026-02-08"
     [license]="MIT"
     [author]="Andrzej Barabasz"
     [notes]="Functions starting with _ are excluded from the listing."
@@ -54,9 +54,19 @@ local file fname desc line
 for file in "$func_dir"/*(.N); do
     fname="${file:t}"
     [[ "$fname" == _* ]] && continue
-    IFS= read -r desc < "$file"
-    desc="${desc#\#}"
-    desc="${desc## }"
+
+    # Find first meaningful comment (skip empty and "Part of zconfig" lines)
+    desc=""
+    while IFS= read -r line; do
+        [[ "$line" != \#* ]] && break                    # stop at non-comment
+        line="${line#\#}"
+        line="${line## }"
+        [[ -z "$line" ]] && continue                     # skip empty comments
+        [[ "$line" == "Part of zconfig"* ]] && continue  # skip header
+        [[ "$line" == "Use '"* ]] && continue            # skip "Use 'cmd --help'"
+        desc="$line"
+        break
+    done < "$file"
 
     funcs+=("$fname")
     sources+=("functions")

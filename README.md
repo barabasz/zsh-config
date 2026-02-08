@@ -62,8 +62,8 @@ See [STRUCTURE.md](docs/STRUCTURE.md) for detailed structure.
 
 | File | Purpose |
 |------|---------|
-| `.zshenv` | Always sourced first; loads tracking, core config, lib/, PATH |
-| `.zshrc` | Interactive shell; loads history, colors, aliases, apps, plugins |
+| `.zshenv` | Always sourced first; loads tracking, core config, PATH, locale |
+| `.zshrc` | Interactive shell; loads lib/, options, colors, aliases, apps, plugins |
 | `.zprofile` | Login shell initialization |
 | `.zlogin` | Post-login actions (cleanup, display system info) |
 
@@ -79,7 +79,7 @@ Core configuration split by responsibility. Each file handles one concern.
 | `xdg.zsh` | XDG Base Directory variables |
 | `colors.zsh` | ANSI color code variables |
 | `icons.zsh` | Icon/glyph variables |
-| `history.zsh` | History configuration and options |
+| `options.zsh` | Shell options (setopt/unsetopt) |
 | `prompt.zsh` | Fallback prompt |
 | `path.zsh` | PATH configuration |
 | `hashdirs.zsh` | Named directory hashes (`~zsh`, `~gh`, etc.) |
@@ -91,7 +91,7 @@ Core configuration split by responsibility. Each file handles one concern.
 
 ### Helper Library (`lib/`)
 
-Fast utility functions loaded in `.zshenv`. See individual files for available functions. Use `zman` to list all functions or `zinfo <function>` for details.
+Fast utility functions loaded in `.zshrc` (interactive sessions only). See individual files for available functions. Use `zman` to list all functions or `zinfo <function>` for details.
 
 | File | Category |
 |------|----------|
@@ -203,6 +203,7 @@ All configuration variables are defined in `inc/env.zsh` with sensible defaults.
 | `ZSH_LOAD_COLORS` | 1 | Load colors from `colors.zsh` |
 | `ZSH_LOAD_COMPLETION` | 1 | Load completion config from `completion.zsh` |
 | `ZSH_LOAD_HASHDIRS` | 1 | Load directory hashes from `hashdirs.zsh` |
+| `ZSH_LOAD_OPTIONS` | 1 | Load shell options from `options.zsh` |
 
 **Examples:**
 ```zsh

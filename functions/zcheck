@@ -1,0 +1,22 @@
+# Part of zconfig · https://github.com/barabasz/zconfig · MIT License
+#
+# Check if zconfig is properly installed and configured.
+# Use 'zcheck --help' for more information.
+
+local -A _fn=(
+    [info]="Check zconfig installation and configuration"
+    [desc]="Checks if zconfig is properly installed and configured. It verifies the presence
+            of necessary directories, files, and environment variables. It also checks for common
+            issues and provides suggestions for fixing them."
+    [version]="0.1.0"
+    [created]="2026-02-08"
+    [modified]="2026-02-08"
+    [license]="MIT"
+    [author]="Andrzej Barabasz"
+)
+
+# Ensure all *DIR directories exist
+local _var                                                                                                                                                                     
+for _var in ${(Mk)parameters:#*DIR}; do                                                                                                                                        
+    [[ -d ${(P)_var} ]] || mkdir -p "${(P)_var}"                                                                                                                               
+done

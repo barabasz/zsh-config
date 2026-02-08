@@ -6,14 +6,16 @@
 # Shell files tracking infrastructure
 ##
 
-zmodload zsh/datetime
-typeset -A ZFILES
-typeset -A ZFILES_TIME
-typeset -A ZFILES_START
-typeset -a ZFILES_ORDER
+[[ -o interactive ]] && {
+    typeset -A ZFILES
+    typeset -A ZFILES_TIME
+    typeset -A ZFILES_START
+    typeset -a ZFILES_ORDER
+}
 
 # Start tracking a sourced file
 zfile_track_start() {
+    [[ -o interactive ]] || return 0
     local filepath=$1
     this_file=${filepath:t}
     ZFILES[$filepath]=0
@@ -26,6 +28,7 @@ zfile_track_start ${0:A}
 
 # End tracking a sourced file
 zfile_track_end() {
+    [[ -o interactive ]] || return 0
     local filepath=$1
     ZFILES[$filepath]=1
     ZFILES_TIME[$filepath]=$(( (EPOCHREALTIME - ZFILES_START[$filepath]) * 1000 ))

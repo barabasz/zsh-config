@@ -8,6 +8,8 @@ List of available functions and helper functions with descriptions.
 | abs | math.zsh | Get absolute value |
 | add_days | date.zsh | Add days to current date |
 | age_from_date | date.zsh | Get age from birthdate |
+| appinstall | functions | Install application via brew or apt with auto-discovery |
+| argsinfo | varia.zsh | Show arguments info (for debugging/learning) |
 | array_concat | arrays.zsh | Concatenate multiple arrays |
 | array_contains | arrays.zsh | Check if array contains element (exact match) |
 | array_diff | arrays.zsh | Get array difference (elements in arr1 but not in arr2) |
@@ -42,9 +44,11 @@ List of available functions and helper functions with descriptions.
 | cdpath_append | path.zsh | Add directory to $cdpath |
 | ceil | math.zsh | Round number up (ceiling) |
 | clamp | math.zsh | Clamp number to range |
+| clean_ansi | strings.zsh | Remove ANSI escape codes from string |
 | clean_dir | compile.zsh | Remove all .zwc files from a directory |
 | clean_plugin | plugins.zsh | Remove all .zwc files from a plugin directory |
 | clean_plugins | plugins.zsh | Remove all .zwc files from all plugins |
+| clean_string | strings.zsh | Normalize whitespace (collapse multiple spaces/tabs/newlines into single space) |
 | clean_zsh_config | compile.zsh | Clean .zwc files from entire zsh configuration |
 | clip_copy | clipboard.zsh | Copy input to system clipboard |
 | clip_paste | clipboard.zsh | Paste from system clipboard to stdout |
@@ -55,6 +59,7 @@ List of available functions and helper functions with descriptions.
 | compile_plugins | plugins.zsh | Compile all installed plugins |
 | compile_zsh_config | compile.zsh | Compile entire zsh configuration (lib/, inc/, apps/) |
 | compress | archive.zsh | Compress a file or directory into a .tar.gz (uses pigz if available) |
+| concatenate_zsh_dir | varia.zsh | Concatenate all .zsh files in a directory into a single file |
 | confirm | varia.zsh | Ask for confirmation (Y/n) |
 | copyfile | clipboard.zsh | Copy the contents of a file to clipboard |
 | copypath | clipboard.zsh | Copy the absolute path of a file or directory to clipboard |
@@ -81,13 +86,16 @@ List of available functions and helper functions with descriptions.
 | download | network.zsh | Download file with progress |
 | end_of_day | date.zsh | Get end of day timestamp (23:59:59) |
 | etime | varia.zsh | Measure execution time of a command |
-| execs | functions | Execute command with animated spinner |
+| execs | print.zsh | Execute command with animated spinner |
+| extract_filepath | strings.zsh | Extract file path from a string |
+| extract_url | strings.zsh | Extract URL from a string |
 | extract | archive.zsh | Extract any archive format based on extension |
 | factorial | math.zsh | Calculate factorial |
 | fibonacci | math.zsh | Calculate fibonacci number at position n |
 | find_plugin_file | plugins.zsh | Find the main plugin file |
 | floor | math.zsh | Round number down (floor) |
 | flush_dns | network.zsh | Flush DNS cache |
+| fntest | functions | Test function for lib/fn.zsh library |
 | format_bytes | math.zsh | Format bytes into human readable size (IEC) |
 | format_duration | date.zsh | Format seconds into human readable duration |
 | format_metric | math.zsh | Format number with SI metric prefixes (k, M, G, T) - Base 1000 |
@@ -97,6 +105,7 @@ List of available functions and helper functions with descriptions.
 | fpath_append | path.zsh | Add directory to the END of $fpath |
 | fpath_prepend | path.zsh | Add directory to the BEGINNING of $fpath |
 | fpath_remove | path.zsh | Remove directory from $fpath |
+| ftype | functions | Detect the type of a filesystem object |
 | gcd | math.zsh | Calculate GCD (Greatest Common Divisor) |
 | get_active_interface | network.zsh | Get active network interface (primary) |
 | get_available_shells | shell.zsh | Get available shells from /etc/shells |
@@ -135,7 +144,8 @@ List of available functions and helper functions with descriptions.
 | get_version | strings.zsh | Extract version number from a string |
 | get_week_number | date.zsh | Get week number of year |
 | get_wifi_ssid | network.zsh | Get current Wi-Fi SSID |
-| getrandom | functions | Unified function to get random numbers with optional formatting |
+| getrandom | functions | Generate random numbers using the Collatz-Weyl Generator (CWG) |
+| has_visible_files | files.zsh | Check if directory has at least one non-hidden file |
 | hex2dec | math.zsh | Convert Hexadecimal to Decimal |
 | hours_between | date.zsh | Get difference between two timestamps in hours |
 | http_status | network.zsh | Check HTTP status code |
@@ -189,10 +199,12 @@ List of available functions and helper functions with descriptions.
 | is_writable | files.zsh | Check if file/dir is writable |
 | is_wsl | system.zsh | Check if current OS is Windows (WSL) |
 | is_zero | math.zsh | Check if number is zero |
+| iso2utime | date.zsh | Convert ISO 8601 date (UTC) to unix timestamp |
 | j2y | functions | Convert JSON to YAML using yq |
-| lanip | functions | Retrieve the local IP address (interactive tool) |
+| lanip | functions | Retrieve the local IP address |
 | lcm | math.zsh | Calculate LCM (Least Common Multiple) |
 | list_plugins | plugins.zsh | List all plugins |
+| lns | functions | Create symbolic link safely |
 | load_plugin_directly | plugins.zsh | Load a plugin by name directly (without wrapper) |
 | load_plugin_wrapper | plugins.zsh | Load a plugin wrapper file |
 | load_plugin | plugins.zsh | Load a plugin by name (from wrapper) |
@@ -201,11 +213,12 @@ List of available functions and helper functions with descriptions.
 | ltrim | strings.zsh | Trim whitespace from left side of string |
 | manpath_append | path.zsh | Add directory to $manpath |
 | max | math.zsh | Get maximum of two or more numbers |
-| mdig | functions | Multi-DNS query tool |
+| mdig | functions | Multi-DNS query tool - query multiple DNS servers and display results |
 | meminfo | functions | Display system memory (RAM) usage statistics |
 | min | math.zsh | Get minimum of two or more numbers |
 | minutes_between | date.zsh | Get difference between two timestamps in minutes |
 | mkfile | files.zsh | Create a file and its parent directories if they don't exist |
+| mli | functions | Minimize / hide login information on Linux systems |
 | needrestart | functions | Manage needrestart interactive prompts on Ubuntu |
 | needs_compile | compile.zsh | Check if a .zsh file needs (re)compilation |
 | now_format | date.zsh | Get current date in custom format |
@@ -230,7 +243,7 @@ List of available functions and helper functions with descriptions.
 | printc | print.zsh | Print colored text (simple wrapper) |
 | printcol | print.zsh | Print arguments in columns (like ls) |
 | printd | print.zsh | Print debug message (only if debug mode is on) |
-| printdemo | print.zsh | Print available print functions (for demo purposes) |
+| printdemo | functions | Print available print functions (for demo purposes) |
 | printe | print.zsh | Print error message to stderr |
 | printh | print.zsh | Print a header with an underline |
 | printi | print.zsh | Print info message to stdout |
@@ -247,8 +260,9 @@ List of available functions and helper functions with descriptions.
 | relative_time | date.zsh | Get relative time description |
 | reload_shell | shell.zsh | Reload current shell configuration |
 | remove_plugin | plugins.zsh | Remove a plugin |
-| rename-fonts | functions | Rename font files in the current directory based on their internal font names. |
+| rename-fonts | functions | Rename font files based on their internal font names |
 | resolve_link | files.zsh | Resolve symbolic link target (readlink equivalent) |
+| rmln | functions | Remove a symbolic link only |
 | round | math.zsh | Round number to nearest integer |
 | rtrim | strings.zsh | Trim whitespace from right side of string |
 | scan_ports | network.zsh | Scan common ports on a host |
@@ -257,13 +271,13 @@ List of available functions and helper functions with descriptions.
 | shell_level | shell.zsh | Get shell level (nesting depth) |
 | shell_name | shell.zsh | Get current shell name |
 | shell_path | shell.zsh | Get full shell path (environment variable) |
-| shell_speed | shell.zsh | Measure shell startup times |
 | shell_ver | shell.zsh | Get Zsh version |
 | sleepme | functions | Put the computer to sleep |
 | slugify | strings.zsh | Convert string to slug (URL-friendly) |
 | source_plugin | plugins.zsh | Source a standalone plugin file directly |
+| source_zsh_dir | varia.zsh | Source all .zsh files in a directory |
 | sqrt | math.zsh | Calculate square root |
-| sslinfo | functions | Wrapper around openssl to inspect certificates |
+| sslinfo | functions | Inspect SSL/TLS certificates using openssl |
 | start_of_day | date.zsh | Get start of day timestamp (00:00:00) |
 | start_of_month | date.zsh | Get start of month timestamp |
 | start_of_week | date.zsh | Get start of week timestamp (Monday 00:00:00) |
@@ -273,6 +287,9 @@ List of available functions and helper functions with descriptions.
 | str_ends_with | strings.zsh | Check if string ends with suffix |
 | str_join | strings.zsh | Join array elements with delimiter |
 | str_length | strings.zsh | Get string length |
+| str_pad_center | strings.zsh | Pad string on both sides (center) |
+| str_pad_left | strings.zsh | Pad string on the left side |
+| str_pad_right | strings.zsh | Pad string on the right side |
 | str_pad | strings.zsh | Pad string to length |
 | str_repeat | strings.zsh | Repeat string N times |
 | str_replace_all | strings.zsh | Replace all occurrences of pattern with replacement |
@@ -284,7 +301,7 @@ List of available functions and helper functions with descriptions.
 | sub_days | date.zsh | Subtract days from current date |
 | substring | strings.zsh | Get substring |
 | sum | math.zsh | Calculate sum of numbers |
-| sysinfo | functions | Display system information summary |
+| sysinfo | functions | # Part of zconfig · https://github.com/barabasz/zconfig · MIT License |
 | terminal_columns | shell.zsh | Get number of terminal columns |
 | terminal_lines | shell.zsh | Get number of terminal lines |
 | terminal_type | shell.zsh | Get terminal type |
@@ -294,15 +311,24 @@ List of available functions and helper functions with descriptions.
 | update_plugin | plugins.zsh | Update a plugin (git pull + recompile) |
 | update_plugins | plugins.zsh | Update all installed plugins |
 | uppercase | strings.zsh | Convert string to uppercase |
-| urlinfo | functions | uURL information tool (zsh port of PHP version) |
+| urlinfo | functions | Query URL and display detailed connection, SSL, and timing information |
+| utime2iso | date.zsh | Convert unix timestamp to ISO 8601 date (UTC) |
+| utype | varia.zsh | Ultra-fast command type detector |
+| verinfo | functions | Show version and location info for a command |
 | wanip | functions | Retrieve the public IP address (IPv4 or IPv6) |
 | y2j | functions | Convert YAML to JSON using yq |
 | yesno | print.zsh | Ask user a yes/no question |
 | zcalc | math.zsh | Evaluate mathematical expression and print result |
-| zconfig | functions | Open the file defined in $ZCONFIG using the default editor |
-| zfiles | functions | Show loaded shell files in order |
+| zcheck | functions | Check if zconfig is properly installed and configured. |
+| zconfig | functions | Edit zconfig file using the default editor |
+| zdemo | functions | Zsh demo function to showcase various features of the zsh shell. |
+| zdoc | functions | Display zconfig documentation files |
+| zfiles | functions | Show loaded shell files in order with status and load time |
 | zgit | functions | Git wrapper for bulk operations on repositories defined in $GHDIR |
+| zhelp | functions | Display helpful commands and documentation for zconfig |
 | zinfo | functions | Display help information for a function from lib/ or functions/ |
 | zip_folder | archive.zsh | Create a zip archive of a folder (ignoring common junk) |
 | zman | functions | List all user functions from lib/ and functions/ directories |
-| zupdate | functions | Update zconfig and all plugins |
+| zspeed | functions | Measure zsh startup performance |
+| zupdate | functions | Update zconfig, plugins, and system packages |
+| zwhere | functions | Universal command locator - find where a command is defined |

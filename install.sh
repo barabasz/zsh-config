@@ -26,11 +26,14 @@ ZSHENV_LINK="$HOME/.zshenv"
 XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
 XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.local/cache}
 XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
+XDG_LIB_HOME=${XDG_LIB_HOME:-$HOME/.local/lib}
+XDG_TMP_HOME=${XDG_TMP_HOME:-$HOME/.local/tmp}
 XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
 XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
+TEMP=${TEMP:-$XDG_TMP_HOME}
 
 # Ensure directories exist                                                                                                                                                     
-mkdir -p $XDG_CONFIG_HOME $XDG_CACHE_HOME $XDG_BIN_HOME $XDG_DATA_HOME $XDG_STATE_HOME
+mkdir -p $XDG_CONFIG_HOME $XDG_CACHE_HOME $XDG_BIN_HOME $XDG_LIB_HOME $XDG_TMP_HOME $XDG_DATA_HOME $XDG_STATE_HOME
 
 URL_HOMEBREW="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 URL_OHMYPOSH="https://ohmyposh.dev/install.sh"

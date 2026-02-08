@@ -38,30 +38,11 @@ export STATEDIR=$LOCALDIR/state
 export DLDIR=$HOME/Downloads
 export DOCDIR=$HOME/Documents
 
-# Ensure all *DIR directories exist
-local _var                                                                                                                                                                     
-for _var in ${(Mk)parameters:#*DIR}; do                                                                                                                                        
-    [[ -d ${(P)_var} ]] || mkdir -p "${(P)_var}"                                                                                                                               
-done
-
 # Don't consider certain characters part of the word
 WORDCHARS='_-'
 
-# Hide EOL sign ('%')
-PROMPT_EOL_MARK=""
-
 # Time format for the 'time' command
 TIMEFMT=$'\nreal\t%E\nuser\t%U\nsys\t%S\ncpu\t%P'
-
-# Zsh options
-setopt autocd              # change directory just by typing its name
-#setopt correct            # auto correct mistakes
-setopt interactivecomments # allow comments in interactive mode
-setopt magicequalsubst     # enable filename expansion for arguments of the form ‘anything=expression’
-#setopt nonomatch          # hide error message if there is no match for the pattern
-setopt notify              # report the status of background jobs immediately
-setopt numericglobsort     # sort filenames numerically when it makes sense
-setopt promptsubst         # enable command substitution in prompt
 
 # Library files configuration
 export ZSH_LOAD_LIB=${ZSH_LOAD_LIB:-1}           # set to 1 to load library files from lib/
@@ -76,11 +57,17 @@ export ZSH_LOAD_ALIASES=${ZSH_LOAD_ALIASES:-1}   # set to 1 to load aliases from
 export ZSH_LOAD_COLORS=${ZSH_LOAD_COLORS:-1}     # set to 1 to load colors from colors.zsh
 export ZSH_LOAD_COMPLETION=${ZSH_LOAD_COMPLETION:-1} # set to 1 to load completion configuration from completion.zsh
 export ZSH_LOAD_HASHDIRS=${ZSH_LOAD_HASHDIRS:-1} # set to 1 to load directory hashes from hashdirs.zsh
+export ZSH_LOAD_OPTIONS=${ZSH_LOAD_OPTIONS:-1}   # set to 1 to load shell options from options.zsh
 ## Debug and info messages
-export ZSH_DEBUG=${ZSH_DEBUG:-1}              # set to 1 to enable zsh debug messages
-export ZSH_ZFILE_DEBUG=${ZSH_ZFILE_DEBUG:-0}  # set to 1 to enable zfile sourcing debug messages
-export ZSH_LOGIN_INFO=${ZSH_LOGIN_INFO:-0}    # set to 1 to print login info messages
-export ZSH_SYS_INFO=${ZSH_SYS_INFO:-0}        # set to 1 to print system info messages
+export ZSH_DEBUG=${ZSH_DEBUG:-1}                 # set to 1 to enable zsh debug messages
+export ZSH_ZFILE_DEBUG=${ZSH_ZFILE_DEBUG:-0}     # set to 1 to enable zfile sourcing debug messages
+export ZSH_LOGIN_INFO=${ZSH_LOGIN_INFO:-0}       # set to 1 to print login info messages
+export ZSH_SYS_INFO=${ZSH_SYS_INFO:-0}           # set to 1 to print system info messages
+
+# History (for options see inc/options.zsh)
+export HISTFILE=$ZDOTDIR/.zsh_history
+export HISTSIZE=10000
+export SAVEHIST=10000
 
 # Editors and pager
 export EDITOR='nvim'
